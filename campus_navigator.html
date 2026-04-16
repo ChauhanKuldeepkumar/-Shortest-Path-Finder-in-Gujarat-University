@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Gujarat University Campus Navigator</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#f8f7f4;
+    --surface:#ffffff;
+    --surface2:#f2f1ee;
+    --border:#e0deda;
+    --border2:#c8c6c0;
+    --text:#1a1a18;
+    --text2:#6b6a66;
+    --text3:#9e9d99;
+    --blue:#185FA5;
+    --blue-light:#E6F1FB;
+    --blue-mid:#378ADD;
+    --green:#3B6D11;
+    --green-light:#EAF3DE;
+    --red:#A32D2D;
+    --red-light:#FCEBEB;
+    --amber:#BA7517;
+    --amber-light:#FAEEDA;
+    --amber-mid:#EF9F27;
+    --radius-sm:6px;
+    --radius-md:10px;
+    --radius-lg:14px;
+    --shadow:0 1px 3px rgba(0,0,0,0.08),0 4px 16px rgba(0,0,0,0.04);
+  }
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.6}
+
+  /* NAV */
+  nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;align-items:center;gap:2rem;height:56px;position:sticky;top:0;z-index:100}
+  .nav-logo{font-size:15px;font-weight:600;color:var(--text);letter-spacing:-0.2px}
+  .nav-logo span{color:var(--blue)}
+  .nav-tabs{display:flex;gap:4px;margin-left:auto}
+  .tab-btn{padding:6px 14px;font-size:13px;font-weight:500;border:none;background:transparent;color:var(--text2);border-radius:var(--radius-sm);cursor:pointer;transition:all 0.15s}
+  .tab-btn.active{background:var(--blue-light);color:var(--blue)}
+  .tab-btn:hover:not(.active){background:var(--surface2)}
+
+  /* HERO */
+  .hero{background:var(--surface);border-bottom:1px solid var(--border);padding:2rem 2rem 1.5rem}
+  .hero h1{font-size:26px;font-weight:600;letter-spacing:-0.5px;color:var(--text)}
+  .hero p{font-size:14px;color:var(--text2);margin-top:6px;max-width:600px}
+  .hero-badges{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .badge{font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px;border:1px solid}
+  .badge.blue{background:var(--blue-light);color:var(--blue);border-color:#B5D4F4}
+  .badge.green{background:var(--green-light);color:var(--green);border-color:#C0DD97}
+  .badge.amber{background:var(--amber-light);color:var(--amber);border-color:#FAC775}
+
+  /* TABS CONTENT */
+  .tab-content{display:none;padding:1.5rem 2rem}
+  .tab-content.active{display:block}
+
+  /* NAVIGATOR TAB */
+  .nav-grid{display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow)}
+  .controls-card{padding:1.25rem;display:flex;flex-direction:column;gap:14px}
+  .field label{font-size:11px;color:var(--text2);display:block;margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px}
+  .field select{width:100%;font-size:13px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);cursor:pointer;outline:none;transition:border 0.15s}
+  .field select:focus{border-color:var(--blue-mid)}
+  .algo-toggle{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .algo-btn{padding:9px;font-size:13px;font-weight:500;border:1px solid var(--border2);border-radius:var(--radius-sm);background:transparent;color:var(--text2);cursor:pointer;transition:all 0.15s}
+  .algo-btn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+  .algo-btn:hover:not(.active){background:var(--surface2)}
+  .go-btn{width:100%;padding:11px;font-size:14px;font-weight:600;border:none;border-radius:var(--radius-sm);background:var(--text);color:#fff;cursor:pointer;transition:all 0.15s;letter-spacing:-0.2px}
+  .go-btn:hover{opacity:0.88;transform:translateY(-1px)}
+  .go-btn:active{transform:translateY(0)}
+
+  /* RESULT */
+  .result-box{background:var(--surface2);border-radius:var(--radius-md);padding:1rem;font-size:13px;display:none;border:1px solid var(--border)}
+  .result-box.show{display:block}
+  .result-stat{display:flex;justify-content:space-between;margin-bottom:8px;align-items:center}
+  .result-stat:last-child{margin-bottom:0}
+  .result-label{color:var(--text2);font-size:12px}
+  .result-val{font-weight:600;color:var(--text);font-size:13px}
+  .path-scroll{margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+  .path-scroll p{font-size:11px;color:var(--text2);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
+  .path-chips{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+  .chip{font-size:11px;padding:3px 9px;border-radius:20px;white-space:nowrap;font-weight:500}
+  .chip.start{background:var(--green-light);color:var(--green);border:1px solid #C0DD97}
+  .chip.end{background:#FCEBEB;color:var(--red);border:1px solid #F7C1C1}
+  .chip.mid{background:var(--surface);color:var(--text);border:1px solid var(--border)}
+  .chip.arr{background:transparent;color:var(--text3);font-size:10px;padding:0 2px;border:none}
+  .no-result{font-size:13px;color:var(--red);padding:8px 0;display:none}
+
+  /* MAP */
+  .map-card{background:var(--surface)}
+  .map-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+  .map-title{font-size:13px;font-weight:600;color:var(--text)}
+  .map-sub{font-size:11px;color:var(--text3)}
+  .legend{display:flex;gap:12px;flex-wrap:wrap}
+  .leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)}
+  .leg-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+  svg.campus-map{width:100%;height:520px;cursor:default;display:block}
+  .map-footer{padding:8px 16px;border-top:1px solid var(--border);font-size:11px;color:var(--text3)}
+
+  /* PYTHON CODE TAB */
+  .code-section{margin-bottom:2rem}
+  .code-section-title{font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px;display:flex;align-items:center;gap:8px}
+  .code-section-title .lang-badge{font-size:11px;font-weight:500;padding:2px 8px;background:var(--amber-light);color:var(--amber);border-radius:20px;border:1px solid #FAC775}
+  .code-section-desc{font-size:13px;color:var(--text2);margin-bottom:12px}
+  .code-block-wrap{position:relative;border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--border)}
+  .code-topbar{background:#1e1e1e;padding:10px 16px;display:flex;justify-content:space-between;align-items:center}
+  .code-filename{font-size:12px;color:#888;font-family:monospace}
+  .copy-btn{font-size:12px;padding:4px 12px;background:rgba(255,255,255,0.08);color:#aaa;border:1px solid rgba(255,255,255,0.12);border-radius:var(--radius-sm);cursor:pointer;transition:all 0.15s}
+  .copy-btn:hover{background:rgba(255,255,255,0.14);color:#fff}
+  pre{background:#1e1e1e;color:#d4d4d4;padding:1.25rem 1.5rem;overflow-x:auto;font-size:13px;line-height:1.7;font-family:'Courier New',Consolas,monospace;margin:0;max-height:520px}
+  pre::-webkit-scrollbar{width:6px;height:6px}
+  pre::-webkit-scrollbar-track{background:#2a2a2a}
+  pre::-webkit-scrollbar-thumb{background:#555;border-radius:3px}
+  .kw{color:#569cd6}
+  .fn{color:#dcdcaa}
+  .st{color:#ce9178}
+  .cm{color:#6a9955}
+  .nm{color:#b5cea8}
+  .cl{color:#4ec9b0}
+  .imp{color:#c586c0}
+
+  /* ABOUT TAB */
+  .about-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-bottom:2rem}
+  .about-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem;box-shadow:var(--shadow)}
+  .about-card h3{font-size:15px;font-weight:600;margin-bottom:8px;color:var(--text)}
+  .about-card p{font-size:13px;color:var(--text2);line-height:1.7}
+  .about-card ul{font-size:13px;color:var(--text2);padding-left:1.2rem;line-height:2}
+  .algo-compare{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow)}
+  .compare-table{width:100%;border-collapse:collapse;font-size:13px}
+  .compare-table th{background:var(--surface2);padding:12px 16px;text-align:left;font-weight:600;font-size:12px;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--border)}
+  .compare-table td{padding:12px 16px;border-bottom:1px solid var(--border);color:var(--text)}
+  .compare-table tr:last-child td{border-bottom:none}
+  .compare-table tr:nth-child(even) td{background:var(--surface2)}
+
+  @media(max-width:900px){
+    .nav-grid{grid-template-columns:1fr}
+    .tab-content{padding:1rem}
+    .hero{padding:1.5rem 1rem}
+    nav{padding:0 1rem}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">GU <span>Navigator</span></div>
+  <div class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('navigator',this)">Navigator</button>
+    <button class="tab-btn" onclick="switchTab('code',this)">Python Code</button>
+    <button class="tab-btn" onclick="switchTab('about',this)">About</button>
+  </div>
+</nav>
+
+<div class="hero">
+  <h1>Gujarat University Campus Navigator</h1>
+  <p>Find the shortest path between any two campus buildings using Dijkstra's or A* algorithm. 76 nodes, real distances in meters.</p>
+  <div class="hero-badges">
+    <span class="badge blue">Dijkstra's Algorithm</span>
+    <span class="badge blue">A* Search</span>
+    <span class="badge green">76 Campus Nodes</span>
+    <span class="badge amber">Real Distances (meters)</span>
+  </div>
+</div>
+
+<!-- ═══════════════ NAVIGATOR TAB ═══════════════ -->
+<div class="tab-content active" id="tab-navigator">
+  <div class="nav-grid">
+
+    <div class="card controls-card">
+      <div class="field">
+        <label>Algorithm</label>
+        <div class="algo-toggle">
+          <button class="algo-btn active" onclick="setAlgo('dijkstra',this)">Dijkstra</button>
+          <button class="algo-btn" onclick="setAlgo('astar',this)">A* Star</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>From (Source)</label>
+        <select id="src"></select>
+      </div>
+      <div class="field">
+        <label>To (Destination)</label>
+        <select id="dst"></select>
+      </div>
+      <button class="go-btn" onclick="findPath()">Find Shortest Path →</button>
+
+      <div class="result-box" id="result-box">
+        <div class="result-stat"><span class="result-label">Total Distance</span><span class="result-val" id="res-dist">—</span></div>
+        <div class="result-stat"><span class="result-label">Algorithm Used</span><span class="result-val" id="res-algo">—</span></div>
+        <div class="result-stat"><span class="result-label">Total Stops</span><span class="result-val" id="res-stops">—</span></div>
+        <div class="path-scroll">
+          <p>Route</p>
+          <div class="path-chips" id="path-chips"></div>
+        </div>
+      </div>
+      <div class="no-result" id="no-result">No path found between these locations.</div>
+    </div>
+
+    <div class="card map-card">
+      <div class="map-header">
+        <div>
+          <div class="map-title">Campus Map</div>
+          <div class="map-sub">Click a node to set as destination</div>
+        </div>
+        <div class="legend">
+          <div class="leg-item"><div class="leg-dot" style="background:#378ADD"></div>Building</div>
+          <div class="leg-item"><div class="leg-dot" style="background:#3B6D11"></div>Start</div>
+          <div class="leg-item"><div class="leg-dot" style="background:#E24B4A"></div>End</div>
+          <div class="leg-item"><div class="leg-dot" style="background:#EF9F27"></div>Path</div>
+        </div>
+      </div>
+      <svg class="campus-map" id="campus-svg" viewBox="-150 -200 800 1050"></svg>
+      <div class="map-footer">Scroll to zoom · Click nodes to select destination</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ CODE TAB ═══════════════ -->
+<div class="tab-content" id="tab-code">
+
+  <div class="code-section">
+    <div class="code-section-title">
+      Dijkstra's Algorithm Implementation
+      <span class="lang-badge">Python</span>
+    </div>
+    <div class="code-section-desc">Graph class with adjacency matrix, shortest path using Dijkstra, and matplotlib visualization.</div>
+    <div class="code-block-wrap">
+      <div class="code-topbar">
+        <span class="code-filename">dijkstra_campus.py</span>
+        <button class="copy-btn" onclick="copyCode('dijkstra-code')">Copy</button>
+      </div>
+      <pre id="dijkstra-code"><span class="cm"># Implementation using Dijkstra Algorithm</span>
+
+<span class="imp">import</span> networkx <span class="imp">as</span> nx
+<span class="imp">import</span> matplotlib.pyplot <span class="imp">as</span> plt
+
+<span class="kw">class</span> <span class="cl">Graph</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, size):
+        self.adj_matrix = [[<span class="nm">0</span>] * size <span class="kw">for</span> _ <span class="kw">in</span> range(size)]
+        self.size = size
+        self.vertex_data = [<span class="st">''</span>] * size
+        self.edges = []  <span class="cm"># To store edges for visualization</span>
+        self.node_positions = {}  <span class="cm"># Fixed positions for nodes</span>
+        self.display_labels = {}  <span class="cm"># For visualization purposes</span>
+
+    <span class="kw">def</span> <span class="fn">add_vertex_data</span>(self, vertex, data, position):
+        <span class="kw">if</span> <span class="nm">0</span> &lt;= vertex &lt; self.size:
+            <span class="cm"># Normalize vertex names: strip spaces and replace newlines</span>
+            cleaned_data = <span class="st">' '</span>.join(data.strip().split())
+            self.vertex_data[vertex] = cleaned_data
+            self.node_positions[vertex] = position
+            self.display_labels[vertex] = data
+
+    <span class="kw">def</span> <span class="fn">add_edge</span>(self, u, v, weight):
+        <span class="kw">if</span> <span class="nm">0</span> &lt;= u &lt; self.size <span class="kw">and</span> <span class="nm">0</span> &lt;= v &lt; self.size:
+            self.adj_matrix[u][v] = weight
+            self.adj_matrix[v][u] = weight  <span class="cm"># For undirected graph</span>
+            self.edges.append((u, v, weight))
+
+    <span class="kw">def</span> <span class="fn">dijkstra</span>(self, start_vertex_data, end_vertex_data):
+        <span class="kw">try</span>:
+            start_vertex = self.vertex_data.index(start_vertex_data)
+            end_vertex = self.vertex_data.index(end_vertex_data)
+        <span class="kw">except</span> ValueError:
+            <span class="kw">return</span> float(<span class="st">'inf'</span>), []
+
+        distances = [float(<span class="st">'inf'</span>)] * self.size
+        predecessors = [<span class="kw">None</span>] * self.size
+        distances[start_vertex] = <span class="nm">0</span>
+        visited = [<span class="kw">False</span>] * self.size
+
+        <span class="kw">for</span> _ <span class="kw">in</span> range(self.size):
+            min_distance = float(<span class="st">'inf'</span>)
+            u = <span class="kw">None</span>
+            <span class="kw">for</span> i <span class="kw">in</span> range(self.size):
+                <span class="kw">if not</span> visited[i] <span class="kw">and</span> distances[i] &lt; min_distance:
+                    min_distance = distances[i]
+                    u = i
+
+            <span class="kw">if</span> u <span class="kw">is None or</span> u == end_vertex:
+                <span class="kw">break</span>
+
+            visited[u] = <span class="kw">True</span>
+
+            <span class="kw">for</span> v <span class="kw">in</span> range(self.size):
+                <span class="kw">if</span> self.adj_matrix[u][v] != <span class="nm">0</span> <span class="kw">and not</span> visited[v]:
+                    alt = distances[u] + self.adj_matrix[u][v]
+                    <span class="kw">if</span> alt &lt; distances[v]:
+                        distances[v] = alt
+                        predecessors[v] = u
+
+        <span class="kw">return</span> distances[end_vertex], self.get_path(predecessors, start_vertex_data, end_vertex_data)
+
+    <span class="kw">def</span> <span class="fn">get_path</span>(self, predecessors, start_vertex_data, end_vertex_data):
+        path = []
+        <span class="kw">try</span>:
+            current = self.vertex_data.index(end_vertex_data)
+        <span class="kw">except</span> ValueError:
+            <span class="kw">return</span> []
+
+        <span class="kw">while</span> current <span class="kw">is not None</span>:
+            path.insert(<span class="nm">0</span>, self.vertex_data[current])
+            current = predecessors[current]
+            <span class="kw">if</span> current == self.vertex_data.index(start_vertex_data):
+                path.insert(<span class="nm">0</span>, start_vertex_data)
+                <span class="kw">break</span>
+        <span class="kw">return</span> path
+
+    <span class="kw">def</span> <span class="fn">visualize</span>(self, path=[]):
+        G = nx.Graph()
+        <span class="kw">for</span> i, label <span class="kw">in</span> enumerate(self.vertex_data):
+            G.add_node(i, label=self.display_labels.get(i, label))
+        <span class="kw">for</span> u, v, weight <span class="kw">in</span> self.edges:
+            G.add_edge(u, v, weight=weight)
+
+        scaled_positions = {i: (x * <span class="nm">1.5</span>, y * <span class="nm">1.5</span>) <span class="kw">for</span> i, (x, y) <span class="kw">in</span> self.node_positions.items()}
+        labels = nx.get_node_attributes(G, <span class="st">'label'</span>)
+        edge_labels = nx.get_edge_attributes(G, <span class="st">'weight'</span>)
+
+        plt.figure(figsize=(<span class="nm">18</span>, <span class="nm">20</span>))
+        nx.draw(G, scaled_positions, with_labels=<span class="kw">False</span>, node_size=<span class="nm">800</span>, node_color=<span class="st">"lightblue"</span>)
+        nx.draw_networkx_labels(G, scaled_positions, labels, font_size=<span class="nm">12</span>, font_color=<span class="st">"black"</span>)
+        nx.draw_networkx_edge_labels(G, scaled_positions, edge_labels=edge_labels, font_color=<span class="st">"red"</span>)
+
+        <span class="kw">if</span> path:
+            H = nx.DiGraph()
+            path_indices = [self.vertex_data.index(node) <span class="kw">for</span> node <span class="kw">in</span> path]
+            <span class="kw">for</span> i <span class="kw">in</span> range(len(path_indices) - <span class="nm">1</span>):
+                u, v = path_indices[i], path_indices[i + <span class="nm">1</span>]
+                weight = self.adj_matrix[u][v]
+                H.add_edge(u, v, weight=weight)
+            path_edge_labels = nx.get_edge_attributes(H, <span class="st">'weight'</span>)
+            nx.draw_networkx_edges(H, scaled_positions, edgelist=H.edges(), edge_color=<span class="st">"green"</span>, width=<span class="nm">3</span>, arrows=<span class="kw">True</span>, arrowsize=<span class="nm">25</span>)
+            nx.draw_networkx_nodes(G, scaled_positions, nodelist=path_indices, node_color=<span class="st">"yellow"</span>)
+            nx.draw_networkx_edge_labels(H, scaled_positions, edge_labels=path_edge_labels, font_color=<span class="st">"green"</span>)
+
+        plt.title(<span class="st">"Graph Visualization with Shortest Path Highlighted"</span>, fontsize=<span class="nm">16</span>)
+        plt.show()
+
+
+<span class="cm"># ─── Initialize Graph ─────────────────────────────────────────────</span>
+g = <span class="cl">Graph</span>(<span class="nm">76</span>)
+SCALING_FACTOR = <span class="nm">50</span>
+
+<span class="cm"># Adding vertices with fixed positions</span>
+g.add_vertex_data(<span class="nm">0</span>,  <span class="st">'ADMIN \n BUILDING \n (TOWER)'</span>,                        (<span class="nm">0</span>  * SCALING_FACTOR, <span class="nm">0</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">1</span>,  <span class="st">'B K SCHOOL \n OF \n BUSINESS'</span>,                       (<span class="nm">-1</span> * SCALING_FACTOR, <span class="nm">-2</span> * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">2</span>,  <span class="st">'K S SCHOOL \n OF \n BUSINESS'</span>,                       (<span class="nm">1</span>  * SCALING_FACTOR, <span class="nm">-2</span> * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">3</span>,  <span class="st">'DEPARTMENT \n OF \n PSYCHOLOGY'</span>,                      (<span class="nm">3</span>  * SCALING_FACTOR, <span class="nm">-2</span> * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">4</span>,  <span class="st">'SCHOOL\nOF\nLANGUAGES'</span>,                              (<span class="nm">4</span>  * SCALING_FACTOR, <span class="nm">-2</span> * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">5</span>,  <span class="st">'INFORMATION \n CENTRE'</span>,                               (<span class="nm">6</span>  * SCALING_FACTOR, <span class="nm">-2</span> * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">6</span>,  <span class="st">'LIBRARY'</span>,                                            (<span class="nm">9</span>  * SCALING_FACTOR, <span class="nm">-2</span> * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">7</span>,  <span class="st">'\n DEPARTMENT OF \n COMPUTER \n SCIENCE'</span>,            (<span class="nm">0</span>  * SCALING_FACTOR, <span class="nm">2</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">8</span>,  <span class="st">'UPASANA'</span>,                                            (<span class="nm">1</span>  * SCALING_FACTOR, <span class="nm">4</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">9</span>,  <span class="st">'DEPARTMENT \n OF \n PHYSICS'</span>,                         (<span class="nm">4</span>  * SCALING_FACTOR, <span class="nm">7</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">10</span>, <span class="st">'DEPARTMENT \n OF \n ZOOLOGY'</span>,                         (<span class="nm">7</span>  * SCALING_FACTOR, <span class="nm">5</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">11</span>, <span class="st">'DEPARTMENT \n OF \n ANIMATION'</span>,                       (<span class="nm">9</span>  * SCALING_FACTOR, <span class="nm">4</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">12</span>, <span class="st">'DEPARTMENT \n OF \n BOTANY'</span>,                          (<span class="nm">5</span>  * SCALING_FACTOR, <span class="nm">12</span> * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">13</span>, <span class="st">'DEPARTMENT \n OF \n MICROBIOLOGY'</span>,                    (<span class="nm">5</span>  * SCALING_FACTOR, <span class="nm">9</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">14</span>, <span class="st">'  ATAL \n KALAM'</span>,                                     (<span class="nm">7</span>  * SCALING_FACTOR, <span class="nm">14</span> * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">15</span>, <span class="st">'DEPARTMENT \n OF \n CHEMISTRY'</span>,                       (<span class="nm">9</span>  * SCALING_FACTOR, <span class="nm">12</span> * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">16</span>, <span class="st">'DEPARTMENT \n OF \n BIOCHEMISTRY'</span>,                    (<span class="nm">9</span>  * SCALING_FACTOR, <span class="nm">9</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">17</span>, <span class="st">'      PHYSICAL \n       RESEARCH \n       LABORATORY'</span>, (<span class="nm">-1</span> * SCALING_FACTOR, <span class="nm">6</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">18</span>, <span class="st">'\n \n GU \n POLICE \n STATION'</span>,                      (<span class="nm">-1</span> * SCALING_FACTOR, <span class="nm">12</span> * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">19</span>, <span class="st">'SCHOOL\nOF\nDESIGN'</span>,                                 (<span class="nm">10</span> * SCALING_FACTOR, <span class="nm">11</span> * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">20</span>, <span class="st">'DEPARTMENT \n OF \n MATHEMATICS'</span>,                     (<span class="nm">7</span>  * SCALING_FACTOR, <span class="nm">7</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">21</span>, <span class="st">'GUSEC'</span>,                                              (<span class="nm">7</span>  * SCALING_FACTOR, <span class="nm">11</span> * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">75</span>, <span class="st">'SCHOOL OF \n INTERNATIONAL STUDIES \n AND DIASPORA'</span>,  (<span class="nm">7</span>  * SCALING_FACTOR, <span class="nm">2</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">22</span>, <span class="st">'EXAMINATION \n CENTRE'</span>,                               (<span class="nm">4</span>  * SCALING_FACTOR, <span class="nm">2</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">23</span>, <span class="st">'CANTEEN'</span>,                                            (<span class="nm">4</span>  * SCALING_FACTOR, <span class="nm">0</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">24</span>, <span class="st">'TOWER \n CIRCLE'</span>,                                     (<span class="nm">0</span>  * SCALING_FACTOR, <span class="nm">-1</span> * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">25</span>, <span class="st">'2'</span>,  (<span class="nm">0</span>  * SCALING_FACTOR, <span class="nm">-2</span> * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">26</span>, <span class="st">'3'</span>,  (<span class="nm">3</span>  * SCALING_FACTOR, <span class="nm">-1</span> * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">27</span>, <span class="st">'4'</span>,  (<span class="nm">5</span>  * SCALING_FACTOR, <span class="nm">-1</span> * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">28</span>, <span class="st">'5'</span>,  (<span class="nm">5</span>  * SCALING_FACTOR, <span class="nm">-2</span> * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">29</span>, <span class="st">'6'</span>,  (<span class="nm">0</span>  * SCALING_FACTOR, <span class="nm">1</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">30</span>, <span class="st">'7'</span>,  (<span class="nm">-1</span> * SCALING_FACTOR, <span class="nm">1</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">31</span>, <span class="st">'8'</span>,  (<span class="nm">1</span>  * SCALING_FACTOR, <span class="nm">1</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">32</span>, <span class="st">'9'</span>,  (<span class="nm">-1</span> * SCALING_FACTOR, <span class="nm">3</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">33</span>, <span class="st">'10'</span>, (<span class="nm">1</span>  * SCALING_FACTOR, <span class="nm">3</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">34</span>, <span class="st">'11'</span>, (<span class="nm">3</span>  * SCALING_FACTOR, <span class="nm">2</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">35</span>, <span class="st">'12'</span>, (<span class="nm">0</span>  * SCALING_FACTOR, <span class="nm">3</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">36</span>, <span class="st">'13'</span>, (<span class="nm">3</span>  * SCALING_FACTOR, <span class="nm">3</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">37</span>, <span class="st">'14'</span>, (<span class="nm">5</span>  * SCALING_FACTOR, <span class="nm">3</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">38</span>, <span class="st">'15'</span>, (<span class="nm">8</span>  * SCALING_FACTOR, <span class="nm">3</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">39</span>, <span class="st">'16'</span>, (<span class="nm">11</span> * SCALING_FACTOR, <span class="nm">3</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">40</span>, <span class="st">'17'</span>, (<span class="nm">11</span> * SCALING_FACTOR, <span class="nm">6</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">41</span>, <span class="st">'18'</span>, (<span class="nm">8</span>  * SCALING_FACTOR, <span class="nm">6</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">42</span>, <span class="st">'19'</span>, (<span class="nm">7</span>  * SCALING_FACTOR, <span class="nm">3</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">43</span>, <span class="st">'20'</span>, (<span class="nm">5</span>  * SCALING_FACTOR, <span class="nm">6</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">44</span>, <span class="st">'21'</span>, (<span class="nm">3</span>  * SCALING_FACTOR, <span class="nm">7</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">45</span>, <span class="st">'22'</span>, (<span class="nm">3</span>  * SCALING_FACTOR, <span class="nm">8</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">46</span>, <span class="st">'23'</span>, (<span class="nm">5</span>  * SCALING_FACTOR, <span class="nm">8</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">47</span>, <span class="st">'24'</span>, (<span class="nm">6</span>  * SCALING_FACTOR, <span class="nm">8</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">48</span>, <span class="st">'25'</span>, (<span class="nm">8</span>  * SCALING_FACTOR, <span class="nm">8</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">49</span>, <span class="st">'26'</span>, (<span class="nm">11</span> * SCALING_FACTOR, <span class="nm">8</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">50</span>, <span class="st">'27'</span>, (<span class="nm">8</span>  * SCALING_FACTOR, <span class="nm">12</span> * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">51</span>, <span class="st">'28'</span>, (<span class="nm">6</span>  * SCALING_FACTOR, <span class="nm">12</span> * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">52</span>, <span class="st">'29'</span>, (<span class="nm">6</span>  * SCALING_FACTOR, <span class="nm">13</span> * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">53</span>, <span class="st">'30'</span>, (<span class="nm">8</span>  * SCALING_FACTOR, <span class="nm">13</span> * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">54</span>, <span class="st">'31'</span>, (<span class="nm">11</span> * SCALING_FACTOR, <span class="nm">15</span> * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">55</span>, <span class="st">'32'</span>, (<span class="nm">8</span>  * SCALING_FACTOR, <span class="nm">15</span> * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">56</span>, <span class="st">'33'</span>, (<span class="nm">-2</span> * SCALING_FACTOR, <span class="nm">15</span> * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">57</span>, <span class="st">'34'</span>, (<span class="nm">-2</span> * SCALING_FACTOR, <span class="nm">12</span> * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">58</span>, <span class="st">'35'</span>, (<span class="nm">-2</span> * SCALING_FACTOR, <span class="nm">6</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">59</span>, <span class="st">'\n \n DR \n BABA SAHEB \n AMBEDKAR GATE'</span>,           (<span class="nm">-2</span> * SCALING_FACTOR, <span class="nm">3</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">60</span>, <span class="st">'37'</span>, (<span class="nm">-2</span> * SCALING_FACTOR, <span class="nm">-3</span> * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">61</span>, <span class="st">'GATE \n NO \n 1'</span>,                                    (<span class="nm">0</span>  * SCALING_FACTOR, <span class="nm">-3</span> * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">62</span>, <span class="st">'39'</span>, (<span class="nm">5</span>  * SCALING_FACTOR, <span class="nm">0</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">63</span>, <span class="st">'40'</span>, (<span class="nm">8</span>  * SCALING_FACTOR, <span class="nm">4</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">64</span>, <span class="st">'41'</span>, (<span class="nm">9</span>  * SCALING_FACTOR, <span class="nm">-1</span> * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">65</span>, <span class="st">'42'</span>, (<span class="nm">11</span> * SCALING_FACTOR, <span class="nm">11</span> * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">66</span>, <span class="st">'43'</span>, (<span class="nm">6</span>  * SCALING_FACTOR, <span class="nm">7</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">67</span>, <span class="st">'44'</span>, (<span class="nm">7</span>  * SCALING_FACTOR, <span class="nm">6</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">68</span>, <span class="st">'45'</span>, (<span class="nm">9</span>  * SCALING_FACTOR, <span class="nm">8</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">69</span>, <span class="st">'46'</span>, (<span class="nm">7</span>  * SCALING_FACTOR, <span class="nm">12</span> * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">70</span>, <span class="st">'47'</span>, (<span class="nm">8</span>  * SCALING_FACTOR, <span class="nm">14</span> * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">71</span>, <span class="st">'48'</span>, (<span class="nm">6</span>  * SCALING_FACTOR, <span class="nm">9</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">72</span>, <span class="st">'\n NETAJI \n SUBHASH CHANDRA \n BOSE GATE'</span>,        (<span class="nm">5</span>  * SCALING_FACTOR, <span class="nm">-3</span> * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">73</span>, <span class="st">'MAHATMA \n GANDHI \n GATE'</span>,                         (<span class="nm">11</span> * SCALING_FACTOR, <span class="nm">0</span>  * SCALING_FACTOR))
+g.add_vertex_data(<span class="nm">74</span>, <span class="st">'51'</span>, (<span class="nm">11</span> * SCALING_FACTOR, <span class="nm">-3</span> * SCALING_FACTOR))
+
+<span class="cm"># Adding edges with distances in meters</span>
+g.add_edge(<span class="nm">0</span>,  <span class="nm">24</span>, <span class="nm">0</span>)   <span class="cm"># A - 1</span>
+g.add_edge(<span class="nm">0</span>,  <span class="nm">29</span>, <span class="nm">43</span>)  <span class="cm"># A - 6</span>
+g.add_edge(<span class="nm">1</span>,  <span class="nm">25</span>, <span class="nm">1</span>)   <span class="cm"># B - 2</span>
+g.add_edge(<span class="nm">2</span>,  <span class="nm">25</span>, <span class="nm">1</span>)   <span class="cm"># C - 2</span>
+g.add_edge(<span class="nm">3</span>,  <span class="nm">26</span>, <span class="nm">42</span>)  <span class="cm"># D - 3</span>
+g.add_edge(<span class="nm">4</span>,  <span class="nm">28</span>, <span class="nm">1</span>)   <span class="cm"># E - 5</span>
+g.add_edge(<span class="nm">5</span>,  <span class="nm">28</span>, <span class="nm">1</span>)   <span class="cm"># F - 5</span>
+g.add_edge(<span class="nm">6</span>,  <span class="nm">64</span>, <span class="nm">38</span>)  <span class="cm"># G - 41</span>
+g.add_edge(<span class="nm">7</span>,  <span class="nm">35</span>, <span class="nm">1</span>)   <span class="cm"># H - 12</span>
+g.add_edge(<span class="nm">8</span>,  <span class="nm">33</span>, <span class="nm">20</span>)  <span class="cm"># I - 10</span>
+g.add_edge(<span class="nm">9</span>,  <span class="nm">44</span>, <span class="nm">1</span>)   <span class="cm"># J - 21</span>
+g.add_edge(<span class="nm">10</span>, <span class="nm">67</span>, <span class="nm">1</span>)   <span class="cm"># K - 44</span>
+g.add_edge(<span class="nm">11</span>, <span class="nm">63</span>, <span class="nm">1</span>)   <span class="cm"># L - 40</span>
+g.add_edge(<span class="nm">12</span>, <span class="nm">51</span>, <span class="nm">1</span>)   <span class="cm"># M - 28</span>
+g.add_edge(<span class="nm">13</span>, <span class="nm">71</span>, <span class="nm">1</span>)   <span class="cm"># N - 48</span>
+g.add_edge(<span class="nm">14</span>, <span class="nm">70</span>, <span class="nm">1</span>)   <span class="cm"># O - 47</span>
+g.add_edge(<span class="nm">15</span>, <span class="nm">50</span>, <span class="nm">1</span>)   <span class="cm"># P - 27</span>
+g.add_edge(<span class="nm">16</span>, <span class="nm">68</span>, <span class="nm">1</span>)   <span class="cm"># Q - 45</span>
+g.add_edge(<span class="nm">17</span>, <span class="nm">58</span>, <span class="nm">32</span>)  <span class="cm"># R - 35</span>
+g.add_edge(<span class="nm">18</span>, <span class="nm">57</span>, <span class="nm">32</span>)  <span class="cm"># S - 34</span>
+g.add_edge(<span class="nm">19</span>, <span class="nm">65</span>, <span class="nm">1</span>)   <span class="cm"># T - 42</span>
+g.add_edge(<span class="nm">20</span>, <span class="nm">66</span>, <span class="nm">1</span>)   <span class="cm"># U - 43</span>
+g.add_edge(<span class="nm">21</span>, <span class="nm">69</span>, <span class="nm">1</span>)   <span class="cm"># V - 46</span>
+g.add_edge(<span class="nm">22</span>, <span class="nm">34</span>, <span class="nm">47</span>)  <span class="cm"># X - 11</span>
+g.add_edge(<span class="nm">23</span>, <span class="nm">62</span>, <span class="nm">47</span>)  <span class="cm"># Y - 39</span>
+g.add_edge(<span class="nm">24</span>, <span class="nm">25</span>, <span class="nm">37</span>)  <span class="cm"># 1 - 2</span>
+g.add_edge(<span class="nm">24</span>, <span class="nm">26</span>, <span class="nm">85</span>)  <span class="cm"># 1 - 3</span>
+g.add_edge(<span class="nm">25</span>, <span class="nm">61</span>, <span class="nm">68</span>)  <span class="cm"># 2 - 38</span>
+g.add_edge(<span class="nm">26</span>, <span class="nm">27</span>, <span class="nm">81</span>)  <span class="cm"># 3 - 4</span>
+g.add_edge(<span class="nm">26</span>, <span class="nm">34</span>, <span class="nm">126</span>) <span class="cm"># 3 - 11</span>
+g.add_edge(<span class="nm">27</span>, <span class="nm">28</span>, <span class="nm">81</span>)  <span class="cm"># 4 - 5</span>
+g.add_edge(<span class="nm">27</span>, <span class="nm">62</span>, <span class="nm">39</span>)  <span class="cm"># 4 - 39</span>
+g.add_edge(<span class="nm">27</span>, <span class="nm">64</span>, <span class="nm">90</span>)  <span class="cm"># 4 - 41</span>
+g.add_edge(<span class="nm">28</span>, <span class="nm">72</span>, <span class="nm">26</span>)  <span class="cm"># 5 - 49</span>
+g.add_edge(<span class="nm">29</span>, <span class="nm">30</span>, <span class="nm">32</span>)  <span class="cm"># 6 - 7</span>
+g.add_edge(<span class="nm">29</span>, <span class="nm">31</span>, <span class="nm">41</span>)  <span class="cm"># 6 - 8</span>
+g.add_edge(<span class="nm">30</span>, <span class="nm">32</span>, <span class="nm">104</span>) <span class="cm"># 7 - 9</span>
+g.add_edge(<span class="nm">31</span>, <span class="nm">33</span>, <span class="nm">79</span>)  <span class="cm"># 8 - 10</span>
+g.add_edge(<span class="nm">32</span>, <span class="nm">35</span>, <span class="nm">39</span>)  <span class="cm"># 9 - 12</span>
+g.add_edge(<span class="nm">32</span>, <span class="nm">59</span>, <span class="nm">12</span>)  <span class="cm"># 9 - 36</span>
+g.add_edge(<span class="nm">33</span>, <span class="nm">35</span>, <span class="nm">49</span>)  <span class="cm"># 10 - 12</span>
+g.add_edge(<span class="nm">33</span>, <span class="nm">36</span>, <span class="nm">52</span>)  <span class="cm"># 10 - 13</span>
+g.add_edge(<span class="nm">33</span>, <span class="nm">31</span>, <span class="nm">79</span>)  <span class="cm"># 10 - 8</span>
+g.add_edge(<span class="nm">34</span>, <span class="nm">36</span>, <span class="nm">96</span>)  <span class="cm"># 11 - 13</span>
+g.add_edge(<span class="nm">34</span>, <span class="nm">26</span>, <span class="nm">126</span>) <span class="cm"># 11 - 3</span>
+g.add_edge(<span class="nm">35</span>, <span class="nm">32</span>, <span class="nm">39</span>)  <span class="cm"># 12 - 9</span>
+g.add_edge(<span class="nm">36</span>, <span class="nm">34</span>, <span class="nm">96</span>)  <span class="cm"># 13 - 11</span>
+g.add_edge(<span class="nm">36</span>, <span class="nm">33</span>, <span class="nm">52</span>)  <span class="cm"># 13 - 10</span>
+g.add_edge(<span class="nm">36</span>, <span class="nm">37</span>, <span class="nm">84</span>)  <span class="cm"># 13 - 14</span>
+g.add_edge(<span class="nm">37</span>, <span class="nm">42</span>, <span class="nm">64</span>)  <span class="cm"># 14 - 19</span>
+g.add_edge(<span class="nm">37</span>, <span class="nm">62</span>, <span class="nm">130</span>) <span class="cm"># 14 - 39</span>
+g.add_edge(<span class="nm">37</span>, <span class="nm">43</span>, <span class="nm">73</span>)  <span class="cm"># 14 - 20</span>
+g.add_edge(<span class="nm">38</span>, <span class="nm">42</span>, <span class="nm">45</span>)  <span class="cm"># 15 - 19</span>
+g.add_edge(<span class="nm">38</span>, <span class="nm">39</span>, <span class="nm">62</span>)  <span class="cm"># 15 - 16</span>
+g.add_edge(<span class="nm">38</span>, <span class="nm">63</span>, <span class="nm">28</span>)  <span class="cm"># 15 - 40</span>
+g.add_edge(<span class="nm">39</span>, <span class="nm">40</span>, <span class="nm">112</span>) <span class="cm"># 16 - 17</span>
+g.add_edge(<span class="nm">39</span>, <span class="nm">73</span>, <span class="nm">90</span>)  <span class="cm"># 16 - 50</span>
+g.add_edge(<span class="nm">40</span>, <span class="nm">41</span>, <span class="nm">87</span>)  <span class="cm"># 17 - 18</span>
+g.add_edge(<span class="nm">40</span>, <span class="nm">49</span>, <span class="nm">93</span>)  <span class="cm"># 17 - 26</span>
+g.add_edge(<span class="nm">41</span>, <span class="nm">63</span>, <span class="nm">74</span>)  <span class="cm"># 18 - 40</span>
+g.add_edge(<span class="nm">41</span>, <span class="nm">67</span>, <span class="nm">28</span>)  <span class="cm"># 18 - 44</span>
+g.add_edge(<span class="nm">41</span>, <span class="nm">48</span>, <span class="nm">75</span>)  <span class="cm"># 18 - 25</span>
+g.add_edge(<span class="nm">43</span>, <span class="nm">46</span>, <span class="nm">72</span>)  <span class="cm"># 20 - 23</span>
+g.add_edge(<span class="nm">43</span>, <span class="nm">67</span>, <span class="nm">77</span>)  <span class="cm"># 20 - 44</span>
+g.add_edge(<span class="nm">44</span>, <span class="nm">45</span>, <span class="nm">51</span>)  <span class="cm"># 21 - 22</span>
+g.add_edge(<span class="nm">45</span>, <span class="nm">46</span>, <span class="nm">42</span>)  <span class="cm"># 22 - 23</span>
+g.add_edge(<span class="nm">46</span>, <span class="nm">47</span>, <span class="nm">52</span>)  <span class="cm"># 23 - 24</span>
+g.add_edge(<span class="nm">46</span>, <span class="nm">43</span>, <span class="nm">72</span>)  <span class="cm"># 23 - 20</span>
+g.add_edge(<span class="nm">47</span>, <span class="nm">71</span>, <span class="nm">24</span>)  <span class="cm"># 24 - 48</span>
+g.add_edge(<span class="nm">47</span>, <span class="nm">48</span>, <span class="nm">51</span>)  <span class="cm"># 24 - 25</span>
+g.add_edge(<span class="nm">47</span>, <span class="nm">66</span>, <span class="nm">57</span>)  <span class="cm"># 24 - 43</span>
+g.add_edge(<span class="nm">48</span>, <span class="nm">68</span>, <span class="nm">55</span>)  <span class="cm"># 25 - 45</span>
+g.add_edge(<span class="nm">48</span>, <span class="nm">50</span>, <span class="nm">108</span>) <span class="cm"># 25 - 27</span>
+g.add_edge(<span class="nm">48</span>, <span class="nm">41</span>, <span class="nm">75</span>)  <span class="cm"># 25 - 18</span>
+g.add_edge(<span class="nm">49</span>, <span class="nm">68</span>, <span class="nm">45</span>)  <span class="cm"># 26 - 45</span>
+g.add_edge(<span class="nm">49</span>, <span class="nm">40</span>, <span class="nm">93</span>)  <span class="cm"># 26 - 17</span>
+g.add_edge(<span class="nm">49</span>, <span class="nm">65</span>, <span class="nm">57</span>)  <span class="cm"># 26 - 42</span>
+g.add_edge(<span class="nm">50</span>, <span class="nm">69</span>, <span class="nm">20</span>)  <span class="cm"># 27 - 46</span>
+g.add_edge(<span class="nm">50</span>, <span class="nm">48</span>, <span class="nm">108</span>) <span class="cm"># 27 - 25</span>
+g.add_edge(<span class="nm">50</span>, <span class="nm">53</span>, <span class="nm">37</span>)  <span class="cm"># 27 - 30</span>
+g.add_edge(<span class="nm">51</span>, <span class="nm">52</span>, <span class="nm">37</span>)  <span class="cm"># 28 - 29</span>
+g.add_edge(<span class="nm">51</span>, <span class="nm">69</span>, <span class="nm">30</span>)  <span class="cm"># 28 - 46</span>
+g.add_edge(<span class="nm">51</span>, <span class="nm">71</span>, <span class="nm">82</span>)  <span class="cm"># 28 - 48</span>
+g.add_edge(<span class="nm">52</span>, <span class="nm">53</span>, <span class="nm">49</span>)  <span class="cm"># 29 - 30</span>
+g.add_edge(<span class="nm">53</span>, <span class="nm">70</span>, <span class="nm">48</span>)  <span class="cm"># 30 - 47</span>
+g.add_edge(<span class="nm">54</span>, <span class="nm">65</span>, <span class="nm">49</span>)  <span class="cm"># 31 - 42</span>
+g.add_edge(<span class="nm">54</span>, <span class="nm">55</span>, <span class="nm">266</span>) <span class="cm"># 31 - 32</span>
+g.add_edge(<span class="nm">55</span>, <span class="nm">56</span>, <span class="nm">420</span>) <span class="cm"># 32 - 33</span>
+g.add_edge(<span class="nm">55</span>, <span class="nm">70</span>, <span class="nm">62</span>)  <span class="cm"># 32 - 47</span>
+g.add_edge(<span class="nm">56</span>, <span class="nm">57</span>, <span class="nm">70</span>)  <span class="cm"># 33 - 34</span>
+g.add_edge(<span class="nm">57</span>, <span class="nm">18</span>, <span class="nm">32</span>)  <span class="cm"># 34 - S</span>
+g.add_edge(<span class="nm">57</span>, <span class="nm">58</span>, <span class="nm">489</span>) <span class="cm"># 34 - 35</span>
+g.add_edge(<span class="nm">58</span>, <span class="nm">17</span>, <span class="nm">32</span>)  <span class="cm"># 35 - R</span>
+g.add_edge(<span class="nm">58</span>, <span class="nm">59</span>, <span class="nm">76</span>)  <span class="cm"># 35 - 36</span>
+g.add_edge(<span class="nm">59</span>, <span class="nm">32</span>, <span class="nm">12</span>)  <span class="cm"># 36 - 9</span>
+g.add_edge(<span class="nm">59</span>, <span class="nm">60</span>, <span class="nm">378</span>) <span class="cm"># 36 - 37</span>
+g.add_edge(<span class="nm">60</span>, <span class="nm">61</span>, <span class="nm">60</span>)  <span class="cm"># 37 - 38</span>
+g.add_edge(<span class="nm">61</span>, <span class="nm">72</span>, <span class="nm">177</span>) <span class="cm"># 38 - 49</span>
+g.add_edge(<span class="nm">61</span>, <span class="nm">25</span>, <span class="nm">68</span>)  <span class="cm"># 38 - 2</span>
+g.add_edge(<span class="nm">62</span>, <span class="nm">37</span>, <span class="nm">130</span>) <span class="cm"># 39 - 14</span>
+g.add_edge(<span class="nm">62</span>, <span class="nm">27</span>, <span class="nm">58</span>)  <span class="cm"># 39 - 4</span>
+g.add_edge(<span class="nm">63</span>, <span class="nm">38</span>, <span class="nm">28</span>)  <span class="cm"># 40 - 15</span>
+g.add_edge(<span class="nm">63</span>, <span class="nm">41</span>, <span class="nm">74</span>)  <span class="cm"># 40 - 18</span>
+g.add_edge(<span class="nm">64</span>, <span class="nm">6</span>,  <span class="nm">38</span>)  <span class="cm"># 41 - G</span>
+g.add_edge(<span class="nm">64</span>, <span class="nm">27</span>, <span class="nm">90</span>)  <span class="cm"># 41 - 4</span>
+g.add_edge(<span class="nm">65</span>, <span class="nm">54</span>, <span class="nm">49</span>)  <span class="cm"># 42 - 31</span>
+g.add_edge(<span class="nm">65</span>, <span class="nm">49</span>, <span class="nm">57</span>)  <span class="cm"># 42 - 26</span>
+g.add_edge(<span class="nm">66</span>, <span class="nm">47</span>, <span class="nm">57</span>)  <span class="cm"># 43 - 24</span>
+g.add_edge(<span class="nm">67</span>, <span class="nm">41</span>, <span class="nm">28</span>)  <span class="cm"># 44 - 18</span>
+g.add_edge(<span class="nm">68</span>, <span class="nm">48</span>, <span class="nm">55</span>)  <span class="cm"># 45 - 25</span>
+g.add_edge(<span class="nm">68</span>, <span class="nm">49</span>, <span class="nm">85</span>)  <span class="cm"># 45 - 26</span>
+g.add_edge(<span class="nm">69</span>, <span class="nm">50</span>, <span class="nm">20</span>)  <span class="cm"># 46 - 27</span>
+g.add_edge(<span class="nm">69</span>, <span class="nm">51</span>, <span class="nm">30</span>)  <span class="cm"># 46 - 28</span>
+g.add_edge(<span class="nm">70</span>, <span class="nm">53</span>, <span class="nm">48</span>)  <span class="cm"># 47 - 30</span>
+g.add_edge(<span class="nm">70</span>, <span class="nm">55</span>, <span class="nm">62</span>)  <span class="cm"># 47 - 32</span>
+g.add_edge(<span class="nm">71</span>, <span class="nm">47</span>, <span class="nm">24</span>)  <span class="cm"># 48 - 24</span>
+g.add_edge(<span class="nm">71</span>, <span class="nm">51</span>, <span class="nm">82</span>)  <span class="cm"># 48 - 28</span>
+g.add_edge(<span class="nm">72</span>, <span class="nm">61</span>, <span class="nm">177</span>) <span class="cm"># 49 - 38</span>
+g.add_edge(<span class="nm">72</span>, <span class="nm">74</span>, <span class="nm">102</span>) <span class="cm"># 49 - 51</span>
+g.add_edge(<span class="nm">73</span>, <span class="nm">39</span>, <span class="nm">90</span>)  <span class="cm"># 50 - 16</span>
+g.add_edge(<span class="nm">73</span>, <span class="nm">74</span>, <span class="nm">196</span>) <span class="cm"># 50 - 51</span>
+g.add_edge(<span class="nm">74</span>, <span class="nm">72</span>, <span class="nm">102</span>) <span class="cm"># 51 - 49</span>
+g.add_edge(<span class="nm">74</span>, <span class="nm">73</span>, <span class="nm">196</span>) <span class="cm"># 51 - 50</span>
+g.add_edge(<span class="nm">42</span>, <span class="nm">75</span>, <span class="nm">1</span>)   <span class="cm"># 19 - W</span>
+
+<span class="cm"># User input</span>
+source = <span class="st">' '</span>.join(input(<span class="st">"Enter the source : "</span>).strip().upper().split())
+destination = <span class="st">' '</span>.join(input(<span class="st">"Enter the destination : "</span>).strip().upper().split())
+
+<span class="kw">if</span> source <span class="kw">not in</span> g.vertex_data:
+    print(<span class="st">f"Source '{source}' does not exist. Enter a valid name."</span>)
+<span class="kw">elif</span> destination <span class="kw">not in</span> g.vertex_data:
+    print(<span class="st">f"Destination '{destination}' does not exist. Enter a valid name."</span>)
+<span class="kw">else</span>:
+    distance, path = g.dijkstra(source, destination)
+    <span class="kw">if</span> distance == float(<span class="st">'inf'</span>):
+        print(<span class="st">f"No path exists between {source} and {destination}."</span>)
+    <span class="kw">else</span>:
+        distance_km = distance / <span class="nm">1000</span>
+        print(<span class="st">"\nShortest Path : "</span>)
+        print(<span class="st">f"Path: {'->'.join(path)}"</span>)
+        print(<span class="st">f"Distance: {distance} meters ({distance_km:.2f} kilometers)\n"</span>)
+        g.visualize(path)</pre>
+    </div>
+  </div>
+
+  <div class="code-section">
+    <div class="code-section-title">
+      A* Algorithm Implementation
+      <span class="lang-badge">Python</span>
+    </div>
+    <div class="code-section-desc">Same graph structure extended with Euclidean heuristic for faster, guided pathfinding. Includes execution time measurement.</div>
+    <div class="code-block-wrap">
+      <div class="code-topbar">
+        <span class="code-filename">astar_campus.py</span>
+        <button class="copy-btn" onclick="copyCode('astar-code')">Copy</button>
+      </div>
+      <pre id="astar-code"><span class="cm"># Implementation using A-Star Algorithm</span>
+
+<span class="imp">import</span> networkx <span class="imp">as</span> nx
+<span class="imp">import</span> matplotlib.pyplot <span class="imp">as</span> plt
+<span class="imp">import</span> heapq
+<span class="imp">import</span> time
+
+<span class="kw">class</span> <span class="cl">Graph</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, size):
+        self.adj_matrix = [[<span class="nm">0</span>] * size <span class="kw">for</span> _ <span class="kw">in</span> range(size)]
+        self.size = size
+        self.vertex_data = [<span class="st">''</span>] * size
+        self.edges = []
+        self.node_positions = {}
+        self.display_labels = {}
+
+    <span class="kw">def</span> <span class="fn">add_vertex_data</span>(self, vertex, data, position):
+        <span class="kw">if</span> <span class="nm">0</span> &lt;= vertex &lt; self.size:
+            cleaned_data = <span class="st">' '</span>.join(data.strip().split())
+            self.vertex_data[vertex] = cleaned_data
+            self.node_positions[vertex] = position
+            self.display_labels[vertex] = data
+
+    <span class="kw">def</span> <span class="fn">add_edge</span>(self, u, v, weight):
+        <span class="kw">if</span> <span class="nm">0</span> &lt;= u &lt; self.size <span class="kw">and</span> <span class="nm">0</span> &lt;= v &lt; self.size:
+            self.adj_matrix[u][v] = weight
+            self.adj_matrix[v][u] = weight
+            self.edges.append((u, v, weight))
+
+    <span class="kw">def</span> <span class="fn">heuristic</span>(self, node1, node2):
+        <span class="st">"""Calculate Euclidean distance as a heuristic."""</span>
+        x1, y1 = self.node_positions[node1]
+        x2, y2 = self.node_positions[node2]
+        <span class="kw">return</span> ((x1 - x2) ** <span class="nm">2</span> + (y1 - y2) ** <span class="nm">2</span>) ** <span class="nm">0.5</span>
+
+    <span class="kw">def</span> <span class="fn">a_star</span>(self, start_vertex_data, end_vertex_data):
+        <span class="kw">try</span>:
+            start_vertex = self.vertex_data.index(start_vertex_data)
+            end_vertex = self.vertex_data.index(end_vertex_data)
+        <span class="kw">except</span> ValueError:
+            <span class="kw">return</span> float(<span class="st">'inf'</span>), []
+
+        open_set = [(<span class="nm">0</span>, start_vertex)]
+        came_from = {}
+        g_score = {i: float(<span class="st">'inf'</span>) <span class="kw">for</span> i <span class="kw">in</span> range(self.size)}
+        g_score[start_vertex] = <span class="nm">0</span>
+
+        <span class="kw">while</span> open_set:
+            _, current = heapq.heappop(open_set)
+
+            <span class="kw">if</span> current == end_vertex:
+                <span class="kw">return</span> g_score[current], self.get_path(came_from, start_vertex_data, end_vertex_data)
+
+            <span class="kw">for</span> neighbor <span class="kw">in</span> range(self.size):
+                <span class="kw">if</span> self.adj_matrix[current][neighbor] != <span class="nm">0</span>:
+                    tentative_g = g_score[current] + self.adj_matrix[current][neighbor]
+                    <span class="kw">if</span> tentative_g &lt; g_score[neighbor]:
+                        g_score[neighbor] = tentative_g
+                        f_score = tentative_g + self.heuristic(neighbor, end_vertex)
+                        heapq.heappush(open_set, (f_score, neighbor))
+                        came_from[neighbor] = current
+
+        <span class="kw">return</span> float(<span class="st">'inf'</span>), []
+
+    <span class="kw">def</span> <span class="fn">get_path</span>(self, came_from, start_vertex_data, end_vertex_data):
+        path = []
+        <span class="kw">try</span>:
+            current = self.vertex_data.index(end_vertex_data)
+        <span class="kw">except</span> ValueError:
+            <span class="kw">return</span> []
+
+        <span class="kw">while</span> current <span class="kw">in</span> came_from:
+            path.insert(<span class="nm">0</span>, self.vertex_data[current])
+            current = came_from[current]
+
+        path.insert(<span class="nm">0</span>, start_vertex_data)
+        <span class="kw">return</span> path
+
+    <span class="kw">def</span> <span class="fn">visualize</span>(self, path=[]):
+        G = nx.Graph()
+        <span class="kw">for</span> i, label <span class="kw">in</span> enumerate(self.vertex_data):
+            G.add_node(i, label=self.display_labels.get(i, label))
+        <span class="kw">for</span> u, v, weight <span class="kw">in</span> self.edges:
+            G.add_edge(u, v, weight=weight)
+
+        scaled_positions = {i: (x * <span class="nm">1.5</span>, y * <span class="nm">1.5</span>) <span class="kw">for</span> i, (x, y) <span class="kw">in</span> self.node_positions.items()}
+        labels = nx.get_node_attributes(G, <span class="st">'label'</span>)
+        edge_labels = nx.get_edge_attributes(G, <span class="st">'weight'</span>)
+
+        plt.figure(figsize=(<span class="nm">18</span>, <span class="nm">20</span>))
+        nx.draw(G, scaled_positions, with_labels=<span class="kw">False</span>, node_size=<span class="nm">800</span>, node_color=<span class="st">"lightblue"</span>)
+        nx.draw_networkx_labels(G, scaled_positions, labels, font_size=<span class="nm">12</span>, font_color=<span class="st">"black"</span>)
+        nx.draw_networkx_edge_labels(G, scaled_positions, edge_labels=edge_labels, font_color=<span class="st">"red"</span>)
+
+        <span class="kw">if</span> path:
+            H = nx.DiGraph()
+            path_indices = [self.vertex_data.index(node) <span class="kw">for</span> node <span class="kw">in</span> path]
+            <span class="kw">for</span> i <span class="kw">in</span> range(len(path_indices) - <span class="nm">1</span>):
+                u, v = path_indices[i], path_indices[i + <span class="nm">1</span>]
+                weight = self.adj_matrix[u][v]
+                H.add_edge(u, v, weight=weight)
+            path_edge_labels = nx.get_edge_attributes(H, <span class="st">'weight'</span>)
+            nx.draw_networkx_edges(H, scaled_positions, edgelist=H.edges(),
+                                   edge_color=<span class="st">"green"</span>, width=<span class="nm">3</span>, arrows=<span class="kw">True</span>, arrowsize=<span class="nm">25</span>)
+            nx.draw_networkx_nodes(G, scaled_positions, nodelist=path_indices, node_color=<span class="st">"yellow"</span>)
+            nx.draw_networkx_edge_labels(H, scaled_positions, edge_labels=path_edge_labels, font_color=<span class="st">"green"</span>)
+
+        plt.title(<span class="st">"Graph Visualization with Shortest Path Highlighted"</span>, fontsize=<span class="nm">16</span>)
+        plt.show()
+
+
+<span class="cm"># ─── Initialize Graph (same vertices & edges as Dijkstra) ─────────</span>
+g = <span class="cl">Graph</span>(<span class="nm">76</span>)
+<span class="cm"># ... (add_vertex_data and add_edge calls are identical to Dijkstra version above)</span>
+
+<span class="cm"># User input</span>
+source = <span class="st">' '</span>.join(input(<span class="st">"Enter the source vertex: "</span>).strip().upper().split())
+destination = <span class="st">' '</span>.join(input(<span class="st">"Enter the destination vertex: "</span>).strip().upper().split())
+
+start_time = time.perf_counter()
+distance, path = g.a_star(source, destination)
+end_time = time.perf_counter()
+execution_time = end_time - start_time
+
+<span class="kw">if</span> distance == float(<span class="st">'inf'</span>):
+    print(<span class="st">f"No path exists between {source} and {destination}."</span>)
+<span class="kw">else</span>:
+    print(<span class="st">f"\nShortest Path: {'->'.join(path)}"</span>)
+    print(<span class="st">f"Distance: {distance} meters ({distance / 1000:.2f} kilometers)"</span>)
+    print(<span class="st">f"Execution Time: {execution_time:.9f} seconds\n"</span>)
+    g.visualize(path)</pre>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ ABOUT TAB ═══════════════ -->
+<div class="tab-content" id="tab-about">
+  <div class="about-grid">
+    <div class="about-card">
+      <h3>Dijkstra's Algorithm</h3>
+      <p>Explores all nodes uniformly by current known distance. Guarantees the optimal shortest path in graphs with non-negative edge weights. Does not use any domain knowledge about the graph layout.</p>
+    </div>
+    <div class="about-card">
+      <h3>A* Algorithm</h3>
+      <p>Extends Dijkstra by adding a heuristic function — here, the Euclidean straight-line distance to the destination. This guides the search toward the goal, typically exploring fewer nodes and running faster.</p>
+    </div>
+    <div class="about-card">
+      <h3>Campus Graph</h3>
+      <ul>
+        <li>76 total nodes</li>
+        <li>25 named buildings/gates</li>
+        <li>51 road junction nodes</li>
+        <li>All edge weights in meters</li>
+        <li>Undirected, weighted graph</li>
+        <li>Adjacency matrix representation</li>
+      </ul>
+    </div>
+    <div class="about-card">
+      <h3>Named Locations</h3>
+      <ul>
+        <li>Admin Building (Tower)</li>
+        <li>Gate No. 1, Ambedkar Gate</li>
+        <li>Netaji Bose Gate, Gandhi Gate</li>
+        <li>Library, Canteen, GUSEC</li>
+        <li>10+ Academic Departments</li>
+        <li>Physical Research Lab, Upasana</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="algo-compare">
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>Dijkstra</th>
+          <th>A* (A-Star)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Optimality</td><td>Always optimal</td><td>Optimal (with admissible heuristic)</td></tr>
+        <tr><td>Heuristic</td><td>None</td><td>Euclidean distance</td></tr>
+        <tr><td>Search Strategy</td><td>Uniform cost</td><td>Best-first (f = g + h)</td></tr>
+        <tr><td>Speed</td><td>Slower on large graphs</td><td>Typically faster</td></tr>
+        <tr><td>Nodes Explored</td><td>More (explores all directions)</td><td>Fewer (guided toward goal)</td></tr>
+        <tr><td>Use Case</td><td>All-pairs shortest path</td><td>Single-pair shortest path</td></tr>
+        <tr><td>Time Complexity</td><td>O(V²) with matrix</td><td>O(E log V) typical</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+function switchTab(name, btn){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
+}
+
+function copyCode(id){
+  const pre=document.getElementById(id);
+  const text=pre.innerText||pre.textContent;
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn=pre.previousElementSibling.querySelector('.copy-btn');
+    btn.textContent='Copied!';
+    setTimeout(()=>btn.textContent='Copy',2000);
+  });
+}
+
+const NODES=[
+  {id:0,name:'ADMIN BUILDING (TOWER)',pos:[0,0],named:true},
+  {id:1,name:'BK SCHOOL OF BUSINESS',pos:[-50,-100],named:true},
+  {id:2,name:'KS SCHOOL OF BUSINESS',pos:[50,-100],named:true},
+  {id:3,name:'DEPARTMENT OF PSYCHOLOGY',pos:[150,-100],named:true},
+  {id:4,name:'SCHOOL OF LANGUAGES',pos:[200,-100],named:true},
+  {id:5,name:'INFORMATION CENTRE',pos:[300,-100],named:true},
+  {id:6,name:'LIBRARY',pos:[450,-100],named:true},
+  {id:7,name:'DEPARTMENT OF COMPUTER SCIENCE',pos:[0,100],named:true},
+  {id:8,name:'UPASANA',pos:[50,200],named:true},
+  {id:9,name:'DEPARTMENT OF PHYSICS',pos:[200,350],named:true},
+  {id:10,name:'DEPARTMENT OF ZOOLOGY',pos:[350,250],named:true},
+  {id:11,name:'DEPARTMENT OF ANIMATION',pos:[450,200],named:true},
+  {id:12,name:'DEPARTMENT OF BOTANY',pos:[250,600],named:true},
+  {id:13,name:'DEPARTMENT OF MICROBIOLOGY',pos:[250,450],named:true},
+  {id:14,name:'ATAL KALAM',pos:[350,700],named:true},
+  {id:15,name:'DEPARTMENT OF CHEMISTRY',pos:[450,600],named:true},
+  {id:16,name:'DEPARTMENT OF BIOCHEMISTRY',pos:[450,450],named:true},
+  {id:17,name:'PHYSICAL RESEARCH LABORATORY',pos:[-50,300],named:true},
+  {id:18,name:'GU POLICE STATION',pos:[-50,600],named:true},
+  {id:19,name:'SCHOOL OF DESIGN',pos:[500,550],named:true},
+  {id:20,name:'DEPARTMENT OF MATHEMATICS',pos:[350,350],named:true},
+  {id:21,name:'GUSEC',pos:[350,550],named:true},
+  {id:75,name:'SCHOOL OF INTERNATIONAL STUDIES AND DIASPORA',pos:[350,100],named:true},
+  {id:22,name:'EXAMINATION CENTRE',pos:[200,100],named:true},
+  {id:23,name:'CANTEEN',pos:[200,0],named:true},
+  {id:24,name:'TOWER CIRCLE',pos:[0,-50],named:true},
+  {id:25,name:'Junction 2',pos:[0,-100],named:false},
+  {id:26,name:'Junction 3',pos:[150,-50],named:false},
+  {id:27,name:'Junction 4',pos:[250,-50],named:false},
+  {id:28,name:'Junction 5',pos:[250,-100],named:false},
+  {id:29,name:'Junction 6',pos:[0,50],named:false},
+  {id:30,name:'Junction 7',pos:[-50,50],named:false},
+  {id:31,name:'Junction 8',pos:[50,50],named:false},
+  {id:32,name:'Junction 9',pos:[-50,150],named:false},
+  {id:33,name:'Junction 10',pos:[50,150],named:false},
+  {id:34,name:'Junction 11',pos:[150,100],named:false},
+  {id:35,name:'Junction 12',pos:[0,150],named:false},
+  {id:36,name:'Junction 13',pos:[150,150],named:false},
+  {id:37,name:'Junction 14',pos:[250,150],named:false},
+  {id:38,name:'Junction 15',pos:[400,150],named:false},
+  {id:39,name:'Junction 16',pos:[550,150],named:false},
+  {id:40,name:'Junction 17',pos:[550,300],named:false},
+  {id:41,name:'Junction 18',pos:[400,300],named:false},
+  {id:42,name:'Junction 19',pos:[350,150],named:false},
+  {id:43,name:'Junction 20',pos:[250,300],named:false},
+  {id:44,name:'Junction 21',pos:[150,350],named:false},
+  {id:45,name:'Junction 22',pos:[150,400],named:false},
+  {id:46,name:'Junction 23',pos:[250,400],named:false},
+  {id:47,name:'Junction 24',pos:[300,400],named:false},
+  {id:48,name:'Junction 25',pos:[400,400],named:false},
+  {id:49,name:'Junction 26',pos:[550,400],named:false},
+  {id:50,name:'Junction 27',pos:[400,600],named:false},
+  {id:51,name:'Junction 28',pos:[300,600],named:false},
+  {id:52,name:'Junction 29',pos:[300,650],named:false},
+  {id:53,name:'Junction 30',pos:[400,650],named:false},
+  {id:54,name:'Junction 31',pos:[550,750],named:false},
+  {id:55,name:'Junction 32',pos:[400,750],named:false},
+  {id:56,name:'Junction 33',pos:[-100,750],named:false},
+  {id:57,name:'Junction 34',pos:[-100,600],named:false},
+  {id:58,name:'Junction 35',pos:[-100,300],named:false},
+  {id:59,name:'DR BABA SAHEB AMBEDKAR GATE',pos:[-100,150],named:true},
+  {id:60,name:'Junction 37',pos:[-100,-150],named:false},
+  {id:61,name:'GATE NO 1',pos:[0,-150],named:true},
+  {id:62,name:'Junction 39',pos:[250,0],named:false},
+  {id:63,name:'Junction 40',pos:[400,200],named:false},
+  {id:64,name:'Junction 41',pos:[450,-50],named:false},
+  {id:65,name:'Junction 42',pos:[550,550],named:false},
+  {id:66,name:'Junction 43',pos:[300,350],named:false},
+  {id:67,name:'Junction 44',pos:[350,300],named:false},
+  {id:68,name:'Junction 45',pos:[450,400],named:false},
+  {id:69,name:'Junction 46',pos:[350,600],named:false},
+  {id:70,name:'Junction 47',pos:[400,700],named:false},
+  {id:71,name:'Junction 48',pos:[300,450],named:false},
+  {id:72,name:'NETAJI SUBHASH CHANDRA BOSE GATE',pos:[250,-150],named:true},
+  {id:73,name:'MAHATMA GANDHI GATE',pos:[550,0],named:true},
+  {id:74,name:'Junction 51',pos:[550,-150],named:false}
+];
+
+const EDGES=[
+  [0,24,0],[0,29,43],[1,25,1],[2,25,1],[3,26,42],[4,28,1],[5,28,1],[6,64,38],
+  [7,35,1],[8,33,20],[9,44,1],[10,67,1],[11,63,1],[12,51,1],[13,71,1],[14,70,1],
+  [15,50,1],[16,68,1],[17,58,32],[18,57,32],[19,65,1],[20,66,1],[21,69,1],
+  [22,34,47],[23,62,47],[24,25,37],[24,26,85],[25,61,68],[26,27,81],[26,34,126],
+  [27,28,81],[27,62,39],[27,64,90],[28,72,26],[29,30,32],[29,31,41],[30,32,104],
+  [31,33,79],[32,35,39],[32,59,12],[33,35,49],[33,36,52],[33,31,79],[34,36,96],
+  [34,26,126],[35,32,39],[36,34,96],[36,33,52],[36,37,84],[37,42,64],[37,62,130],
+  [37,43,73],[38,42,45],[38,39,62],[38,63,28],[39,40,112],[39,73,90],[40,41,87],
+  [40,49,93],[41,63,74],[41,67,28],[41,48,75],[43,46,72],[43,67,77],[44,45,51],
+  [45,46,42],[46,47,52],[46,43,72],[47,71,24],[47,48,51],[47,66,57],[48,68,55],
+  [48,50,108],[48,41,75],[49,68,45],[49,40,93],[49,65,57],[50,69,20],[50,48,108],
+  [50,53,37],[51,52,37],[51,69,30],[51,71,82],[52,53,49],[53,70,48],[54,65,49],
+  [54,55,266],[55,56,420],[55,70,62],[56,57,70],[57,18,32],[57,58,489],[58,17,32],
+  [58,59,76],[59,60,378],[60,61,60],[61,72,177],[61,25,68],[62,37,130],[62,27,58],
+  [63,38,28],[63,41,74],[64,6,38],[64,27,90],[65,54,49],[65,49,57],[66,47,57],
+  [67,41,28],[68,48,55],[68,49,85],[69,50,20],[69,51,30],[70,53,48],[70,55,62],
+  [71,47,24],[71,51,82],[72,61,177],[72,74,102],[73,39,90],[73,74,196],[42,75,1]
+];
+
+let adjList={};
+NODES.forEach(n=>{adjList[n.id]=[]});
+EDGES.forEach(([u,v,w])=>{adjList[u].push({to:v,w});adjList[v].push({to:u,w})});
+
+let currentAlgo='dijkstra', currentPath=[];
+
+function setAlgo(a,btn){
+  currentAlgo=a;
+  document.querySelectorAll('.algo-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function dijkstra(srcId,dstId){
+  const dist={},prev={},visited=new Set();
+  NODES.forEach(n=>{dist[n.id]=Infinity;prev[n.id]=null});
+  dist[srcId]=0;
+  const pq=[[0,srcId]];
+  while(pq.length){
+    pq.sort((a,b)=>a[0]-b[0]);
+    const[d,u]=pq.shift();
+    if(visited.has(u))continue;
+    visited.add(u);
+    if(u===dstId)break;
+    (adjList[u]||[]).forEach(({to,w})=>{
+      const nd=d+w;
+      if(nd<dist[to]){dist[to]=nd;prev[to]=u;pq.push([nd,to])}
+    });
+  }
+  if(dist[dstId]===Infinity)return{dist:Infinity,path:[]};
+  const path=[];let cur=dstId;
+  while(cur!==null){path.unshift(cur);cur=prev[cur]}
+  return{dist:dist[dstId],path};
+}
+
+function astar(srcId,dstId){
+  const dstPos=NODES.find(n=>n.id===dstId).pos;
+  const h=id=>{const p=NODES.find(n=>n.id===id).pos;return Math.hypot(p[0]-dstPos[0],p[1]-dstPos[1])};
+  const g={},prev={},closed=new Set();
+  NODES.forEach(n=>{g[n.id]=Infinity;prev[n.id]=null});
+  g[srcId]=0;
+  const open=[[h(srcId),srcId]];
+  while(open.length){
+    open.sort((a,b)=>a[0]-b[0]);
+    const[,u]=open.shift();
+    if(u===dstId)break;
+    if(closed.has(u))continue;
+    closed.add(u);
+    (adjList[u]||[]).forEach(({to,w})=>{
+      const ng=g[u]+w;
+      if(ng<g[to]){g[to]=ng;prev[to]=u;open.push([ng+h(to),to])}
+    });
+  }
+  if(g[dstId]===Infinity)return{dist:Infinity,path:[]};
+  const path=[];let cur=dstId;
+  while(cur!==null){path.unshift(cur);cur=prev[cur]}
+  return{dist:g[dstId],path};
+}
+
+function findPath(){
+  const srcId=parseInt(document.getElementById('src').value);
+  const dstId=parseInt(document.getElementById('dst').value);
+  const result=currentAlgo==='dijkstra'?dijkstra(srcId,dstId):astar(srcId,dstId);
+  currentPath=result.path;
+  renderMap(currentPath);
+  const rb=document.getElementById('result-box');
+  const nr=document.getElementById('no-result');
+  if(result.dist===Infinity){rb.classList.remove('show');nr.style.display='block';return}
+  nr.style.display='none';rb.classList.add('show');
+  document.getElementById('res-dist').textContent=`${result.dist}m (${(result.dist/1000).toFixed(2)} km)`;
+  document.getElementById('res-algo').textContent=currentAlgo==='dijkstra'?'Dijkstra':'A* (Euclidean heuristic)';
+  document.getElementById('res-stops').textContent=result.path.length;
+  const chips=document.getElementById('path-chips');
+  chips.innerHTML='';
+  result.path.forEach((id,i)=>{
+    const n=NODES.find(x=>x.id===id);
+    const lbl=n.named?n.name:`Node ${n.id}`;
+    const cls=i===0?'start':i===result.path.length-1?'end':'mid';
+    const c=document.createElement('span');
+    c.className=`chip ${cls}`;
+    c.textContent=lbl.length>24?lbl.substring(0,22)+'…':lbl;
+    chips.appendChild(c);
+    if(i<result.path.length-1){const a=document.createElement('span');a.className='chip arr';a.textContent='→';chips.appendChild(a)}
+  });
+}
+
+function renderMap(path=[]){
+  const svg=document.getElementById('campus-svg');
+  svg.innerHTML='';
+  const pathSet=new Set(path);
+  const pathEdgeSet=new Set();
+  for(let i=0;i<path.length-1;i++)pathEdgeSet.add(`${path[i]}-${path[i+1]}`);
+
+  EDGES.forEach(([u,v])=>{
+    const nu=NODES.find(n=>n.id===u),nv=NODES.find(n=>n.id===v);
+    if(!nu||!nv)return;
+    const onPath=pathEdgeSet.has(`${u}-${v}`)||pathEdgeSet.has(`${v}-${u}`);
+    const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1',nu.pos[0]);line.setAttribute('y1',nu.pos[1]);
+    line.setAttribute('x2',nv.pos[0]);line.setAttribute('y2',nv.pos[1]);
+    line.setAttribute('stroke',onPath?'#EF9F27':'#ddd');
+    line.setAttribute('stroke-width',onPath?'3':'1');
+    svg.appendChild(line);
+  });
+
+  NODES.forEach(n=>{
+    const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.setAttribute('transform',`translate(${n.pos[0]},${n.pos[1]})`);
+    g.style.cursor='pointer';
+    g.onclick=()=>nodeClick(n.id);
+
+    const isStart=path[0]===n.id,isEnd=path[path.length-1]===n.id;
+    const onPath=pathSet.has(n.id)&&!isStart&&!isEnd;
+
+    const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    const r=n.named?8:4;
+    c.setAttribute('r',r);
+    let fill=n.named?'#378ADD':'#bbb';
+    if(isStart)fill='#3B6D11';
+    else if(isEnd)fill='#E24B4A';
+    else if(onPath)fill='#EF9F27';
+    c.setAttribute('fill',fill);
+    c.setAttribute('stroke','#fff');
+    c.setAttribute('stroke-width','1.5');
+    g.appendChild(c);
+
+    if(n.named){
+      const t=document.createElementNS('http://www.w3.org/2000/svg','text');
+      const short=n.name.length>20?n.name.substring(0,18)+'…':n.name;
+      t.textContent=short;
+      t.setAttribute('text-anchor','middle');
+      t.setAttribute('dy','18');
+      t.setAttribute('font-size','7');
+      t.setAttribute('fill','#888');
+      t.setAttribute('font-family','Segoe UI, sans-serif');
+      g.appendChild(t);
+    }
+    svg.appendChild(g);
+  });
+}
+
+function nodeClick(id){
+  const src=document.getElementById('src');
+  const dst=document.getElementById('dst');
+  if(parseInt(src.value)===id){src.value=dst.value;dst.value=id}
+  else dst.value=id;
+  renderMap([]);
+}
+
+function populateSelects(){
+  const named=NODES.filter(n=>n.named);
+  ['src','dst'].forEach((sel,si)=>{
+    const el=document.getElementById(sel);
+    named.forEach(n=>{
+      const o=document.createElement('option');
+      o.value=n.id;o.textContent=n.name;el.appendChild(o);
+    });
+    el.value=named[si===0?0:1].id;
+  });
+}
+
+populateSelects();
+renderMap([]);
+</script>
+</body>
+</html>

@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="GU Navigate"/>
+<meta name="theme-color" content="#0a0a0f"/>
+<title>GU Navigate</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0a0a0f;
+  --surface:#13131a;
+  --surface2:#1c1c26;
+  --surface3:#242432;
+  --border:rgba(255,255,255,0.07);
+  --border2:rgba(255,255,255,0.13);
+  --text:#f0f0f5;
+  --text2:#8a8a9a;
+  --text3:#555568;
+  --accent:#6c63ff;
+  --accent2:#8b84ff;
+  --accent-glow:rgba(108,99,255,0.25);
+  --green:#22c55e;
+  --green-dim:rgba(34,197,94,0.15);
+  --red:#ef4444;
+  --red-dim:rgba(239,68,68,0.15);
+  --amber:#f59e0b;
+  --amber-dim:rgba(245,158,11,0.15);
+  --blue:#3b82f6;
+  --blue-dim:rgba(59,130,246,0.15);
+  --r:16px;
+  --r-sm:10px;
+  --r-lg:22px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;-webkit-font-smoothing:antialiased}
+
+/* ── SHELL ── */
+#app{height:100dvh;display:flex;flex-direction:column;overflow:hidden;position:relative}
+
+/* ── STATUS BAR SPACER ── */
+.status-bar{height:env(safe-area-inset-top,24px);background:var(--bg);flex-shrink:0}
+
+/* ── HEADER ── */
+.app-header{flex-shrink:0;padding:12px 20px 0;display:flex;align-items:center;justify-content:space-between}
+.app-logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:34px;height:34px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px var(--accent-glow)}
+.logo-icon svg{width:18px;height:18px;fill:white}
+.logo-text{font-size:17px;font-weight:600;letter-spacing:-0.3px}
+.logo-sub{font-size:11px;color:var(--text2);letter-spacing:0.2px;margin-top:-2px}
+.header-badge{font-size:11px;font-weight:500;padding:4px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;color:var(--text2)}
+
+/* ── SCREENS ── */
+.screens{flex:1;overflow:hidden;position:relative}
+.screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:16px 16px calc(90px + var(--safe-bottom));opacity:0;pointer-events:none;transition:opacity 0.25s ease,transform 0.25s ease;transform:translateX(20px);-webkit-overflow-scrolling:touch}
+.screen.active{opacity:1;pointer-events:all;transform:translateX(0)}
+.screen::-webkit-scrollbar{display:none}
+
+/* ── SECTION LABEL ── */
+.section-label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin:20px 0 10px}
+.section-label:first-child{margin-top:0}
+
+/* ── ALGO PILLS ── */
+.algo-pills{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px}
+.algo-pill{padding:14px 12px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface);cursor:pointer;transition:all 0.2s;text-align:center;position:relative;overflow:hidden}
+.algo-pill::before{content:'';position:absolute;inset:0;background:var(--accent);opacity:0;transition:opacity 0.2s}
+.algo-pill.active{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),inset 0 0 20px rgba(108,99,255,0.1)}
+.algo-pill.active::before{opacity:0.06}
+.algo-pill-icon{font-size:22px;margin-bottom:4px}
+.algo-pill-name{font-size:13px;font-weight:600;position:relative}
+.algo-pill-desc{font-size:11px;color:var(--text2);position:relative;margin-top:2px}
+
+/* ── LOCATION SELECTOR ── */
+.loc-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:4px}
+.loc-row{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;transition:background 0.15s;position:relative}
+.loc-row:active{background:var(--surface2)}
+.loc-row+.loc-row{border-top:1px solid var(--border)}
+.loc-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.loc-dot.from{background:var(--green)}
+.loc-dot.to{background:var(--red)}
+.loc-connector{width:1px;height:20px;background:var(--border2);margin-left:4.5px;display:block}
+.loc-label{font-size:11px;color:var(--text3);font-weight:500;margin-bottom:2px}
+.loc-value{font-size:14px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:calc(100vw - 100px)}
+.loc-chevron{margin-left:auto;color:var(--text3);font-size:18px;flex-shrink:0}
+.swap-btn{width:36px;height:36px;border-radius:50%;background:var(--surface2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;margin:0 auto;position:relative;z-index:2;transition:all 0.2s;flex-shrink:0}
+.swap-btn:active{transform:scale(0.9);background:var(--surface3)}
+.swap-btn svg{width:16px;height:16px;fill:var(--text2)}
+
+/* ── GO BUTTON ── */
+.go-btn{width:100%;padding:16px;border-radius:var(--r);border:none;background:var(--accent);color:#fff;font-size:16px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:-0.2px;transition:all 0.2s;box-shadow:0 4px 24px var(--accent-glow);margin-top:8px;position:relative;overflow:hidden}
+.go-btn::after{content:'';position:absolute;inset:0;background:white;opacity:0;transition:opacity 0.15s}
+.go-btn:active::after{opacity:0.12}
+.go-btn svg{width:18px;height:18px;fill:white}
+
+/* ── RESULT CARD ── */
+.result-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-top:4px;display:none}
+.result-card.show{display:block}
+.result-hero{padding:16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px}
+.result-dist-big{font-size:28px;font-weight:600;letter-spacing:-1px;color:var(--text)}
+.result-dist-unit{font-size:13px;color:var(--text2);margin-top:2px}
+.result-badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.rbadge{font-size:11px;font-weight:500;padding:4px 10px;border-radius:20px}
+.rbadge.algo{background:var(--blue-dim);color:var(--blue)}
+.rbadge.stops{background:var(--amber-dim);color:var(--amber)}
+.rbadge.km{background:var(--green-dim);color:var(--green)}
+
+/* ── ROUTE STEPS ── */
+.route-steps{padding:12px 16px}
+.step{display:flex;align-items:flex-start;gap:12px;padding:8px 0;position:relative}
+.step-line{position:absolute;left:11px;top:28px;bottom:-8px;width:1px;background:var(--border2)}
+.step:last-child .step-line{display:none}
+.step-dot{width:22px;height:22px;border-radius:50%;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;background:var(--surface2)}
+.step-dot.named{border-color:var(--accent);background:rgba(108,99,255,0.15)}
+.step-dot.start-dot{border-color:var(--green);background:var(--green-dim)}
+.step-dot.end-dot{border-color:var(--red);background:var(--red-dim)}
+.step-inner{font-size:8px;font-weight:600;color:var(--accent)}
+.step-text{flex:1;padding-top:2px}
+.step-name{font-size:13px;font-weight:500;color:var(--text);line-height:1.3}
+.step-name.junction{color:var(--text3);font-size:12px;font-weight:400}
+.step-dist{font-size:11px;color:var(--text3);margin-top:2px;font-family:'DM Mono',monospace}
+
+/* ── MAP SCREEN ── */
+.map-wrap{background:var(--surface);border-radius:var(--r);overflow:hidden;border:1px solid var(--border)}
+.map-toolbar{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.map-toolbar-title{font-size:13px;font-weight:500;color:var(--text2)}
+.map-controls{display:flex;gap:6px}
+.map-ctrl-btn{width:30px;height:30px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:var(--text2);transition:all 0.15s}
+.map-ctrl-btn:active{background:var(--surface3)}
+.map-svg-wrap{width:100%;height:340px;overflow:hidden;position:relative;cursor:grab;touch-action:none}
+.map-svg-wrap.grabbing{cursor:grabbing}
+svg#map-svg{position:absolute;transform-origin:0 0}
+.map-legend{padding:10px 14px;border-top:1px solid var(--border);display:flex;gap:14px;flex-wrap:wrap}
+.leg{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2)}
+.leg-dot{width:8px;height:8px;border-radius:50%}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav{flex-shrink:0;background:var(--surface);border-top:1px solid var(--border);display:flex;padding:8px 0 calc(8px + var(--safe-bottom));position:relative;z-index:50}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:6px 0;border:none;background:none;color:var(--text3);font-family:'DM Sans',sans-serif;transition:color 0.2s;-webkit-tap-highlight-color:transparent}
+.nav-item.active{color:var(--accent)}
+.nav-icon{width:24px;height:24px;position:relative}
+.nav-icon svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nav-label{font-size:10px;font-weight:500;letter-spacing:0.2px}
+.nav-indicator{position:absolute;top:-2px;right:-2px;width:7px;height:7px;border-radius:50%;background:var(--accent);border:2px solid var(--surface);display:none}
+.nav-indicator.show{display:block}
+
+/* ── PICKER OVERLAY ── */
+.picker-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;opacity:0;pointer-events:none;transition:opacity 0.25s;backdrop-filter:blur(4px)}
+.picker-overlay.open{opacity:1;pointer-events:all}
+.picker-sheet{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-radius:var(--r-lg) var(--r-lg) 0 0;z-index:201;transform:translateY(100%);transition:transform 0.32s cubic-bezier(0.32,0.72,0,1);max-height:80dvh;display:flex;flex-direction:column}
+.picker-sheet.open{transform:translateY(0)}
+.picker-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 0}
+.picker-header{padding:14px 20px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.picker-title{font-size:16px;font-weight:600}
+.picker-close{width:28px;height:28px;border-radius:50%;background:var(--surface2);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text2)}
+.picker-search{padding:10px 16px;border-bottom:1px solid var(--border)}
+.picker-search input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r-sm);padding:10px 14px;font-size:14px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;transition:border 0.15s}
+.picker-search input:focus{border-color:var(--accent)}
+.picker-search input::placeholder{color:var(--text3)}
+.picker-list{overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch}
+.picker-item{padding:14px 20px;cursor:pointer;transition:background 0.15s;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border)}
+.picker-item:active{background:var(--surface2)}
+.picker-item-icon{width:36px;height:36px;border-radius:10px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.picker-item-name{font-size:14px;font-weight:500;color:var(--text)}
+.picker-item-type{font-size:11px;color:var(--text3);margin-top:2px}
+
+/* ── ABOUT SCREEN ── */
+.info-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:8px}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:1px solid var(--border)}
+.info-row:last-child{border-bottom:none}
+.info-key{font-size:13px;color:var(--text2)}
+.info-val{font-size:13px;font-weight:500;color:var(--text)}
+.compare-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:8px}
+.compare-header{display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid var(--border)}
+.compare-cell{padding:10px 12px;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px}
+.compare-cell.h-algo{color:var(--blue);background:var(--blue-dim)}
+.compare-cell.h-astar{color:var(--accent);background:rgba(108,99,255,0.08)}
+.compare-row{display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid var(--border)}
+.compare-row:last-child{border-bottom:none}
+.compare-cell-v{padding:10px 12px;font-size:12px;color:var(--text2)}
+.compare-cell-v.feature{color:var(--text);font-weight:500}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 var(--accent-glow)}50%{box-shadow:0 0 0 8px transparent}}
+.fade-up{animation:fadeUp 0.4s ease both}
+.delay-1{animation-delay:0.05s}
+.delay-2{animation-delay:0.1s}
+.delay-3{animation-delay:0.15s}
+.delay-4{animation-delay:0.2s}
+.delay-5{animation-delay:0.25s}
+
+/* ── EMPTY STATE ── */
+.empty-state{text-align:center;padding:40px 20px;color:var(--text3)}
+.empty-icon{font-size:40px;margin-bottom:12px}
+.empty-text{font-size:14px}
+
+/* ── NO RESULT ── */
+.no-result-msg{background:var(--red-dim);border:1px solid rgba(239,68,68,0.2);border-radius:var(--r);padding:14px 16px;font-size:13px;color:var(--red);display:none;margin-top:4px}
+.no-result-msg.show{display:block}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="status-bar"></div>
+
+  <div class="app-header">
+    <div class="app-logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+      </div>
+      <div>
+        <div class="logo-text">GU Navigate</div>
+        <div class="logo-sub">Gujarat University</div>
+      </div>
+    </div>
+    <div class="header-badge">76 nodes</div>
+  </div>
+
+  <div class="screens">
+
+    <!-- ══ ROUTE SCREEN ══ -->
+    <div class="screen active" id="screen-route">
+      <div class="section-label fade-up">Algorithm</div>
+      <div class="algo-pills fade-up delay-1">
+        <div class="algo-pill active" id="pill-dijkstra" onclick="setAlgo('dijkstra')">
+          <div class="algo-pill-icon">🔵</div>
+          <div class="algo-pill-name">Dijkstra</div>
+          <div class="algo-pill-desc">Uniform cost</div>
+        </div>
+        <div class="algo-pill" id="pill-astar" onclick="setAlgo('astar')">
+          <div class="algo-pill-icon">⭐</div>
+          <div class="algo-pill-name">A* Star</div>
+          <div class="algo-pill-desc">Heuristic guided</div>
+        </div>
+      </div>
+
+      <div class="section-label fade-up delay-2">Locations</div>
+      <div class="loc-card fade-up delay-3">
+        <div class="loc-row" onclick="openPicker('from')">
+          <div class="loc-dot from"></div>
+          <div style="flex:1;min-width:0">
+            <div class="loc-label">From</div>
+            <div class="loc-value" id="from-label">Admin Building (Tower)</div>
+          </div>
+          <div class="loc-chevron">›</div>
+        </div>
+        <div style="display:flex;align-items:center;padding:0 16px">
+          <div class="loc-connector"></div>
+          <div class="swap-btn" onclick="swapLocations()" style="margin-left:auto;margin-right:0;margin-top:-4px;margin-bottom:-4px">
+            <svg viewBox="0 0 24 24"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+          </div>
+        </div>
+        <div class="loc-row" onclick="openPicker('to')">
+          <div class="loc-dot to"></div>
+          <div style="flex:1;min-width:0">
+            <div class="loc-label">To</div>
+            <div class="loc-value" id="to-label">Select destination</div>
+          </div>
+          <div class="loc-chevron">›</div>
+        </div>
+      </div>
+
+      <button class="go-btn fade-up delay-4" onclick="findPath()">
+        <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+        Find Shortest Path
+      </button>
+
+      <div class="no-result-msg" id="no-result">No path found between these two locations.</div>
+
+      <div class="result-card" id="result-card">
+        <div class="result-hero">
+          <div>
+            <div class="result-dist-big" id="res-meters">—</div>
+            <div class="result-dist-unit">meters</div>
+            <div class="result-badges">
+              <span class="rbadge km" id="res-km">—</span>
+              <span class="rbadge algo" id="res-algo">—</span>
+              <span class="rbadge stops" id="res-stops">—</span>
+            </div>
+          </div>
+        </div>
+        <div class="route-steps" id="route-steps"></div>
+      </div>
+    </div>
+
+    <!-- ══ MAP SCREEN ══ -->
+    <div class="screen" id="screen-map">
+      <div class="section-label">Campus Map</div>
+      <div class="map-wrap">
+        <div class="map-toolbar">
+          <span class="map-toolbar-title">Tap node → set destination</span>
+          <div class="map-controls">
+            <div class="map-ctrl-btn" onclick="mapZoom(1.3)">+</div>
+            <div class="map-ctrl-btn" onclick="mapZoom(0.77)">−</div>
+            <div class="map-ctrl-btn" onclick="mapReset()">⊙</div>
+          </div>
+        </div>
+        <div class="map-svg-wrap" id="map-wrap">
+          <svg id="map-svg" viewBox="-150 -200 800 1050" width="800" height="1050"></svg>
+        </div>
+        <div class="map-legend">
+          <div class="leg"><div class="leg-dot" style="background:#6c63ff"></div>Building</div>
+          <div class="leg"><div class="leg-dot" style="background:#22c55e"></div>Start</div>
+          <div class="leg"><div class="leg-dot" style="background:#ef4444"></div>End</div>
+          <div class="leg"><div class="leg-dot" style="background:#f59e0b"></div>Path</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ABOUT SCREEN ══ -->
+    <div class="screen" id="screen-about">
+      <div class="section-label">Graph Info</div>
+      <div class="info-card">
+        <div class="info-row"><span class="info-key">Total nodes</span><span class="info-val">76</span></div>
+        <div class="info-row"><span class="info-key">Named locations</span><span class="info-val">25</span></div>
+        <div class="info-row"><span class="info-key">Road junctions</span><span class="info-val">51</span></div>
+        <div class="info-row"><span class="info-key">Graph type</span><span class="info-val">Undirected, weighted</span></div>
+        <div class="info-row"><span class="info-key">Edge weights</span><span class="info-val">Meters</span></div>
+      </div>
+
+      <div class="section-label">Algorithm Comparison</div>
+      <div class="compare-card">
+        <div class="compare-header">
+          <div class="compare-cell">Feature</div>
+          <div class="compare-cell h-algo">Dijkstra</div>
+          <div class="compare-cell h-astar">A* Star</div>
+        </div>
+        <div class="compare-row">
+          <div class="compare-cell-v feature">Optimal</div>
+          <div class="compare-cell-v">Always</div>
+          <div class="compare-cell-v">Yes (admissible h)</div>
+        </div>
+        <div class="compare-row">
+          <div class="compare-cell-v feature">Heuristic</div>
+          <div class="compare-cell-v">None</div>
+          <div class="compare-cell-v">Euclidean dist</div>
+        </div>
+        <div class="compare-row">
+          <div class="compare-cell-v feature">Speed</div>
+          <div class="compare-cell-v">Slower</div>
+          <div class="compare-cell-v">Faster</div>
+        </div>
+        <div class="compare-row">
+          <div class="compare-cell-v feature">Nodes explored</div>
+          <div class="compare-cell-v">All directions</div>
+          <div class="compare-cell-v">Goal-guided</div>
+        </div>
+      </div>
+
+      <div class="section-label">Named Locations</div>
+      <div class="info-card" id="locations-list"></div>
+    </div>
+
+  </div>
+
+  <!-- ══ BOTTOM NAV ══ -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" id="nav-route" onclick="switchScreen('route')">
+      <div class="nav-icon">
+        <svg viewBox="0 0 24 24"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg>
+        <div class="nav-indicator show" id="nav-route-ind"></div>
+      </div>
+      <span class="nav-label">Route</span>
+    </button>
+    <button class="nav-item" id="nav-map" onclick="switchScreen('map')">
+      <div class="nav-icon">
+        <svg viewBox="0 0 24 24"><path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+      </div>
+      <span class="nav-label">Map</span>
+    </button>
+    <button class="nav-item" id="nav-about" onclick="switchScreen('about')">
+      <div class="nav-icon">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+      </div>
+      <span class="nav-label">About</span>
+    </button>
+  </nav>
+</div>
+
+<!-- ══ PICKER OVERLAY ══ -->
+<div class="picker-overlay" id="picker-overlay" onclick="closePicker()"></div>
+<div class="picker-sheet" id="picker-sheet">
+  <div class="picker-handle"></div>
+  <div class="picker-header">
+    <span class="picker-title" id="picker-title">Select Location</span>
+    <button class="picker-close" onclick="closePicker()">✕</button>
+  </div>
+  <div class="picker-search">
+    <input type="text" placeholder="Search locations..." id="picker-search" oninput="filterPicker(this.value)"/>
+  </div>
+  <div class="picker-list" id="picker-list"></div>
+</div>
+
+<script>
+// ─── DATA ────────────────────────────────────────────────────────
+const NODES=[
+  {id:0,name:'Admin Building (Tower)',short:'Admin Tower',icon:'🏛️',type:'Administration',named:true,pos:[0,0]},
+  {id:1,name:'BK School of Business',short:'BK Business',icon:'🏢',type:'School',named:true,pos:[-50,-100]},
+  {id:2,name:'KS School of Business',short:'KS Business',icon:'🏢',type:'School',named:true,pos:[50,-100]},
+  {id:3,name:'Department of Psychology',short:'Psychology',icon:'🧠',type:'Department',named:true,pos:[150,-100]},
+  {id:4,name:'School of Languages',short:'Languages',icon:'🌐',type:'School',named:true,pos:[200,-100]},
+  {id:5,name:'Information Centre',short:'Info Centre',icon:'ℹ️',type:'Service',named:true,pos:[300,-100]},
+  {id:6,name:'Library',short:'Library',icon:'📚',type:'Service',named:true,pos:[450,-100]},
+  {id:7,name:'Department of Computer Science',short:'CS Dept',icon:'💻',type:'Department',named:true,pos:[0,100]},
+  {id:8,name:'Upasana',short:'Upasana',icon:'🙏',type:'Place',named:true,pos:[50,200]},
+  {id:9,name:'Department of Physics',short:'Physics',icon:'⚛️',type:'Department',named:true,pos:[200,350]},
+  {id:10,name:'Department of Zoology',short:'Zoology',icon:'🦁',type:'Department',named:true,pos:[350,250]},
+  {id:11,name:'Department of Animation',short:'Animation',icon:'🎬',type:'Department',named:true,pos:[450,200]},
+  {id:12,name:'Department of Botany',short:'Botany',icon:'🌿',type:'Department',named:true,pos:[250,600]},
+  {id:13,name:'Department of Microbiology',short:'Microbiology',icon:'🔬',type:'Department',named:true,pos:[250,450]},
+  {id:14,name:'Atal Kalam',short:'Atal Kalam',icon:'🏫',type:'Building',named:true,pos:[350,700]},
+  {id:15,name:'Department of Chemistry',short:'Chemistry',icon:'⚗️',type:'Department',named:true,pos:[450,600]},
+  {id:16,name:'Department of Biochemistry',short:'Biochemistry',icon:'🧬',type:'Department',named:true,pos:[450,450]},
+  {id:17,name:'Physical Research Laboratory',short:'PRL',icon:'🔭',type:'Research',named:true,pos:[-50,300]},
+  {id:18,name:'GU Police Station',short:'Police Station',icon:'🚔',type:'Service',named:true,pos:[-50,600]},
+  {id:19,name:'School of Design',short:'Design School',icon:'🎨',type:'School',named:true,pos:[500,550]},
+  {id:20,name:'Department of Mathematics',short:'Mathematics',icon:'📐',type:'Department',named:true,pos:[350,350]},
+  {id:21,name:'GUSEC',short:'GUSEC',icon:'🚀',type:'Centre',named:true,pos:[350,550]},
+  {id:75,name:'School of International Studies and Diaspora',short:'Intl Studies',icon:'🌍',type:'School',named:true,pos:[350,100]},
+  {id:22,name:'Examination Centre',short:'Exam Centre',icon:'📝',type:'Service',named:true,pos:[200,100]},
+  {id:23,name:'Canteen',short:'Canteen',icon:'🍽️',type:'Service',named:true,pos:[200,0]},
+  {id:24,name:'Tower Circle',short:'Tower Circle',icon:'🔵',type:'Junction',named:true,pos:[0,-50]},
+  {id:59,name:'Dr Baba Saheb Ambedkar Gate',short:'Ambedkar Gate',icon:'🚪',type:'Gate',named:true,pos:[-100,150]},
+  {id:61,name:'Gate No 1',short:'Gate No 1',icon:'🚪',type:'Gate',named:true,pos:[0,-150]},
+  {id:72,name:'Netaji Subhash Chandra Bose Gate',short:'NSCB Gate',icon:'🚪',type:'Gate',named:true,pos:[250,-150]},
+  {id:73,name:'Mahatma Gandhi Gate',short:'Gandhi Gate',icon:'🚪',type:'Gate',named:true,pos:[550,0]},
+  {id:25,name:'Junction 2',short:'J-2',icon:'•',type:'Junction',named:false,pos:[0,-100]},
+  {id:26,name:'Junction 3',short:'J-3',icon:'•',type:'Junction',named:false,pos:[150,-50]},
+  {id:27,name:'Junction 4',short:'J-4',icon:'•',type:'Junction',named:false,pos:[250,-50]},
+  {id:28,name:'Junction 5',short:'J-5',icon:'•',type:'Junction',named:false,pos:[250,-100]},
+  {id:29,name:'Junction 6',short:'J-6',icon:'•',type:'Junction',named:false,pos:[0,50]},
+  {id:30,name:'Junction 7',short:'J-7',icon:'•',type:'Junction',named:false,pos:[-50,50]},
+  {id:31,name:'Junction 8',short:'J-8',icon:'•',type:'Junction',named:false,pos:[50,50]},
+  {id:32,name:'Junction 9',short:'J-9',icon:'•',type:'Junction',named:false,pos:[-50,150]},
+  {id:33,name:'Junction 10',short:'J-10',icon:'•',type:'Junction',named:false,pos:[50,150]},
+  {id:34,name:'Junction 11',short:'J-11',icon:'•',type:'Junction',named:false,pos:[150,100]},
+  {id:35,name:'Junction 12',short:'J-12',icon:'•',type:'Junction',named:false,pos:[0,150]},
+  {id:36,name:'Junction 13',short:'J-13',icon:'•',type:'Junction',named:false,pos:[150,150]},
+  {id:37,name:'Junction 14',short:'J-14',icon:'•',type:'Junction',named:false,pos:[250,150]},
+  {id:38,name:'Junction 15',short:'J-15',icon:'•',type:'Junction',named:false,pos:[400,150]},
+  {id:39,name:'Junction 16',short:'J-16',icon:'•',type:'Junction',named:false,pos:[550,150]},
+  {id:40,name:'Junction 17',short:'J-17',icon:'•',type:'Junction',named:false,pos:[550,300]},
+  {id:41,name:'Junction 18',short:'J-18',icon:'•',type:'Junction',named:false,pos:[400,300]},
+  {id:42,name:'Junction 19',short:'J-19',icon:'•',type:'Junction',named:false,pos:[350,150]},
+  {id:43,name:'Junction 20',short:'J-20',icon:'•',type:'Junction',named:false,pos:[250,300]},
+  {id:44,name:'Junction 21',short:'J-21',icon:'•',type:'Junction',named:false,pos:[150,350]},
+  {id:45,name:'Junction 22',short:'J-22',icon:'•',type:'Junction',named:false,pos:[150,400]},
+  {id:46,name:'Junction 23',short:'J-23',icon:'•',type:'Junction',named:false,pos:[250,400]},
+  {id:47,name:'Junction 24',short:'J-24',icon:'•',type:'Junction',named:false,pos:[300,400]},
+  {id:48,name:'Junction 25',short:'J-25',icon:'•',type:'Junction',named:false,pos:[400,400]},
+  {id:49,name:'Junction 26',short:'J-26',icon:'•',type:'Junction',named:false,pos:[550,400]},
+  {id:50,name:'Junction 27',short:'J-27',icon:'•',type:'Junction',named:false,pos:[400,600]},
+  {id:51,name:'Junction 28',short:'J-28',icon:'•',type:'Junction',named:false,pos:[300,600]},
+  {id:52,name:'Junction 29',short:'J-29',icon:'•',type:'Junction',named:false,pos:[300,650]},
+  {id:53,name:'Junction 30',short:'J-30',icon:'•',type:'Junction',named:false,pos:[400,650]},
+  {id:54,name:'Junction 31',short:'J-31',icon:'•',type:'Junction',named:false,pos:[550,750]},
+  {id:55,name:'Junction 32',short:'J-32',icon:'•',type:'Junction',named:false,pos:[400,750]},
+  {id:56,name:'Junction 33',short:'J-33',icon:'•',type:'Junction',named:false,pos:[-100,750]},
+  {id:57,name:'Junction 34',short:'J-34',icon:'•',type:'Junction',named:false,pos:[-100,600]},
+  {id:58,name:'Junction 35',short:'J-35',icon:'•',type:'Junction',named:false,pos:[-100,300]},
+  {id:60,name:'Junction 37',short:'J-37',icon:'•',type:'Junction',named:false,pos:[-100,-150]},
+  {id:62,name:'Junction 39',short:'J-39',icon:'•',type:'Junction',named:false,pos:[250,0]},
+  {id:63,name:'Junction 40',short:'J-40',icon:'•',type:'Junction',named:false,pos:[400,200]},
+  {id:64,name:'Junction 41',short:'J-41',icon:'•',type:'Junction',named:false,pos:[450,-50]},
+  {id:65,name:'Junction 42',short:'J-42',icon:'•',type:'Junction',named:false,pos:[550,550]},
+  {id:66,name:'Junction 43',short:'J-43',icon:'•',type:'Junction',named:false,pos:[300,350]},
+  {id:67,name:'Junction 44',short:'J-44',icon:'•',type:'Junction',named:false,pos:[350,300]},
+  {id:68,name:'Junction 45',short:'J-45',icon:'•',type:'Junction',named:false,pos:[450,400]},
+  {id:69,name:'Junction 46',short:'J-46',icon:'•',type:'Junction',named:false,pos:[350,600]},
+  {id:70,name:'Junction 47',short:'J-47',icon:'•',type:'Junction',named:false,pos:[400,700]},
+  {id:71,name:'Junction 48',short:'J-48',icon:'•',type:'Junction',named:false,pos:[300,450]},
+  {id:74,name:'Junction 51',short:'J-51',icon:'•',type:'Junction',named:false,pos:[550,-150]}
+];
+const EDGES=[
+  [0,24,0],[0,29,43],[1,25,1],[2,25,1],[3,26,42],[4,28,1],[5,28,1],[6,64,38],
+  [7,35,1],[8,33,20],[9,44,1],[10,67,1],[11,63,1],[12,51,1],[13,71,1],[14,70,1],
+  [15,50,1],[16,68,1],[17,58,32],[18,57,32],[19,65,1],[20,66,1],[21,69,1],
+  [22,34,47],[23,62,47],[24,25,37],[24,26,85],[25,61,68],[26,27,81],[26,34,126],
+  [27,28,81],[27,62,39],[27,64,90],[28,72,26],[29,30,32],[29,31,41],[30,32,104],
+  [31,33,79],[32,35,39],[32,59,12],[33,35,49],[33,36,52],[33,31,79],[34,36,96],
+  [34,26,126],[35,32,39],[36,34,96],[36,33,52],[36,37,84],[37,42,64],[37,62,130],
+  [37,43,73],[38,42,45],[38,39,62],[38,63,28],[39,40,112],[39,73,90],[40,41,87],
+  [40,49,93],[41,63,74],[41,67,28],[41,48,75],[43,46,72],[43,67,77],[44,45,51],
+  [45,46,42],[46,47,52],[46,43,72],[47,71,24],[47,48,51],[47,66,57],[48,68,55],
+  [48,50,108],[48,41,75],[49,68,45],[49,40,93],[49,65,57],[50,69,20],[50,48,108],
+  [50,53,37],[51,52,37],[51,69,30],[51,71,82],[52,53,49],[53,70,48],[54,65,49],
+  [54,55,266],[55,56,420],[55,70,62],[56,57,70],[57,18,32],[57,58,489],[58,17,32],
+  [58,59,76],[59,60,378],[60,61,60],[61,72,177],[61,25,68],[62,37,130],[62,27,58],
+  [63,38,28],[63,41,74],[64,6,38],[64,27,90],[65,54,49],[65,49,57],[66,47,57],
+  [67,41,28],[68,48,55],[68,49,85],[69,50,20],[69,51,30],[70,53,48],[70,55,62],
+  [71,47,24],[71,51,82],[72,61,177],[72,74,102],[73,39,90],[73,74,196],[42,75,1]
+];
+
+const nodeMap={};
+NODES.forEach(n=>nodeMap[n.id]=n);
+const adjList={};
+NODES.forEach(n=>adjList[n.id]=[]);
+EDGES.forEach(([u,v,w])=>{adjList[u].push({to:v,w});adjList[v].push({to:u,w})});
+
+// ─── STATE ──────────────────────────────────────────────────────
+let algo='dijkstra';
+let fromId=0, toId=null;
+let currentPath=[];
+let pickerTarget=null;
+let mapScale=1, mapX=0, mapY=0;
+
+// ─── SCREEN SWITCH ───────────────────────────────────────────────
+function switchScreen(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  document.getElementById('nav-'+name).classList.add('active');
+  if(name==='map')renderMap(currentPath);
+}
+
+// ─── ALGO ────────────────────────────────────────────────────────
+function setAlgo(a){
+  algo=a;
+  document.getElementById('pill-dijkstra').classList.toggle('active',a==='dijkstra');
+  document.getElementById('pill-astar').classList.toggle('active',a==='astar');
+}
+
+// ─── PICKER ──────────────────────────────────────────────────────
+function openPicker(target){
+  pickerTarget=target;
+  document.getElementById('picker-title').textContent=target==='from'?'Select From':'Select To';
+  document.getElementById('picker-search').value='';
+  renderPickerList('');
+  document.getElementById('picker-overlay').classList.add('open');
+  document.getElementById('picker-sheet').classList.add('open');
+  setTimeout(()=>document.getElementById('picker-search').focus(),400);
+}
+function closePicker(){
+  document.getElementById('picker-overlay').classList.remove('open');
+  document.getElementById('picker-sheet').classList.remove('open');
+}
+function filterPicker(q){renderPickerList(q)}
+function renderPickerList(q){
+  const list=document.getElementById('picker-list');
+  const named=NODES.filter(n=>n.named);
+  const filtered=q?named.filter(n=>n.name.toLowerCase().includes(q.toLowerCase())):named;
+  list.innerHTML=filtered.map(n=>`
+    <div class="picker-item" onclick="selectLocation(${n.id})">
+      <div class="picker-item-icon">${n.icon}</div>
+      <div>
+        <div class="picker-item-name">${n.name}</div>
+        <div class="picker-item-type">${n.type}</div>
+      </div>
+    </div>`).join('');
+}
+function selectLocation(id){
+  const n=nodeMap[id];
+  if(pickerTarget==='from'){fromId=id;document.getElementById('from-label').textContent=n.name}
+  else{toId=id;document.getElementById('to-label').textContent=n.name}
+  closePicker();
+}
+function swapLocations(){
+  const tmp=fromId;fromId=toId;toId=tmp;
+  document.getElementById('from-label').textContent=fromId!=null?(nodeMap[fromId]?.name||'Select location'):'Select location';
+  document.getElementById('to-label').textContent=toId!=null?(nodeMap[toId]?.name||'Select destination'):'Select destination';
+}
+
+// ─── ALGORITHMS ──────────────────────────────────────────────────
+function dijkstra(src,dst){
+  const dist={},prev={},vis=new Set();
+  NODES.forEach(n=>{dist[n.id]=Infinity;prev[n.id]=null});
+  dist[src]=0;const pq=[[0,src]];
+  while(pq.length){
+    pq.sort((a,b)=>a[0]-b[0]);const[d,u]=pq.shift();
+    if(vis.has(u))continue;vis.add(u);if(u===dst)break;
+    (adjList[u]||[]).forEach(({to,w})=>{const nd=d+w;if(nd<dist[to]){dist[to]=nd;prev[to]=u;pq.push([nd,to])}});
+  }
+  if(dist[dst]===Infinity)return{dist:Infinity,path:[]};
+  const path=[];let c=dst;while(c!==null){path.unshift(c);c=prev[c]}
+  return{dist:dist[dst],path};
+}
+function astar(src,dst){
+  const dp=nodeMap[dst].pos;
+  const h=id=>{const p=nodeMap[id].pos;return Math.hypot(p[0]-dp[0],p[1]-dp[1])};
+  const g={},prev={},closed=new Set();
+  NODES.forEach(n=>{g[n.id]=Infinity;prev[n.id]=null});g[src]=0;
+  const open=[[h(src),src]];
+  while(open.length){
+    open.sort((a,b)=>a[0]-b[0]);const[,u]=open.shift();if(u===dst)break;
+    if(closed.has(u))continue;closed.add(u);
+    (adjList[u]||[]).forEach(({to,w})=>{const ng=g[u]+w;if(ng<g[to]){g[to]=ng;prev[to]=u;open.push([ng+h(to),to])}});
+  }
+  if(g[dst]===Infinity)return{dist:Infinity,path:[]};
+  const path=[];let c=dst;while(c!==null){path.unshift(c);c=prev[c]}
+  return{dist:g[dst],path};
+}
+
+// ─── FIND PATH ───────────────────────────────────────────────────
+function findPath(){
+  if(fromId===null||toId===null){
+    document.getElementById('no-result').textContent='Please select both locations.';
+    document.getElementById('no-result').classList.add('show');
+    document.getElementById('result-card').classList.remove('show');
+    return;
+  }
+  if(fromId===toId){
+    document.getElementById('no-result').textContent='Source and destination are the same.';
+    document.getElementById('no-result').classList.add('show');
+    document.getElementById('result-card').classList.remove('show');
+    return;
+  }
+  const result=algo==='dijkstra'?dijkstra(fromId,toId):astar(fromId,toId);
+  currentPath=result.path;
+  renderMap(currentPath);
+  const nr=document.getElementById('no-result');
+  const rc=document.getElementById('result-card');
+  if(result.dist===Infinity){nr.textContent='No path found between these two locations.';nr.classList.add('show');rc.classList.remove('show');return}
+  nr.classList.remove('show');rc.classList.add('show');
+  document.getElementById('res-meters').textContent=result.dist.toLocaleString();
+  document.getElementById('res-km').textContent=(result.dist/1000).toFixed(2)+' km';
+  document.getElementById('res-algo').textContent=algo==='dijkstra'?'Dijkstra':'A* Search';
+  document.getElementById('res-stops').textContent=result.path.length+' stops';
+  renderSteps(result.path);
+  document.getElementById('nav-route-ind').classList.add('show');
+}
+
+function renderSteps(path){
+  const container=document.getElementById('route-steps');
+  let html='';
+  for(let i=0;i<path.length;i++){
+    const n=nodeMap[path[i]];
+    const isStart=i===0,isEnd=i===path.length-1;
+    const dotClass=isStart?'start-dot':isEnd?'end-dot':n.named?'named':'';
+    const nameClass=n.named?'':'junction';
+    let dist='';
+    if(i<path.length-1){
+      const nextId=path[i+1];
+      const edge=adjList[path[i]].find(e=>e.to===nextId);
+      if(edge)dist=`<div class="step-dist">→ ${edge.w}m to next</div>`;
+    }
+    html+=`<div class="step">
+      ${i<path.length-1?'<div class="step-line"></div>':''}
+      <div class="step-dot ${dotClass}">
+        <span class="step-inner">${isStart?'S':isEnd?'E':''}</span>
+      </div>
+      <div class="step-text">
+        <div class="step-name ${nameClass}">${n.named?(n.icon+' '+n.name):n.short}</div>
+        ${dist}
+      </div>
+    </div>`;
+  }
+  container.innerHTML=html;
+}
+
+// ─── MAP ─────────────────────────────────────────────────────────
+function renderMap(path=[]){
+  const svg=document.getElementById('map-svg');
+  svg.innerHTML='';
+  const pathSet=new Set(path);
+  const pathEdgeSet=new Set();
+  for(let i=0;i<path.length-1;i++)pathEdgeSet.add(`${path[i]}-${path[i+1]}`);
+
+  EDGES.forEach(([u,v,w])=>{
+    const nu=nodeMap[u],nv=nodeMap[v];if(!nu||!nv)return;
+    const onP=pathEdgeSet.has(`${u}-${v}`)||pathEdgeSet.has(`${v}-${u}`);
+    const el=document.createElementNS('http://www.w3.org/2000/svg','line');
+    el.setAttribute('x1',nu.pos[0]);el.setAttribute('y1',nu.pos[1]);
+    el.setAttribute('x2',nv.pos[0]);el.setAttribute('y2',nv.pos[1]);
+    el.setAttribute('stroke',onP?'#f59e0b':'rgba(255,255,255,0.1)');
+    el.setAttribute('stroke-width',onP?'3':'1');
+    svg.appendChild(el);
+  });
+
+  NODES.forEach(n=>{
+    const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.setAttribute('transform',`translate(${n.pos[0]},${n.pos[1]})`);
+    g.style.cursor='pointer';
+    g.addEventListener('click',()=>nodeClickMap(n.id));
+    const isStart=path[0]===n.id,isEnd=path[path.length-1]===n.id,onP=pathSet.has(n.id)&&!isStart&&!isEnd;
+    const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    const r=n.named?9:4;c.setAttribute('r',r);
+    let fill=n.named?'#6c63ff':'rgba(255,255,255,0.2)';
+    if(isStart)fill='#22c55e';else if(isEnd)fill='#ef4444';else if(onP)fill='#f59e0b';
+    c.setAttribute('fill',fill);c.setAttribute('stroke','#0a0a0f');c.setAttribute('stroke-width','2');
+    g.appendChild(c);
+    if(n.named){
+      const t=document.createElementNS('http://www.w3.org/2000/svg','text');
+      t.textContent=n.short.length>16?n.short.substring(0,14)+'…':n.short;
+      t.setAttribute('text-anchor','middle');t.setAttribute('dy','20');
+      t.setAttribute('font-size','7');t.setAttribute('fill','rgba(255,255,255,0.55)');
+      t.setAttribute('font-family','DM Sans, sans-serif');
+      g.appendChild(t);
+    }
+    svg.appendChild(g);
+  });
+  applyMapTransform();
+}
+function nodeClickMap(id){
+  if(toId===null){toId=id;document.getElementById('to-label').textContent=nodeMap[id].name}
+  else{toId=id;document.getElementById('to-label').textContent=nodeMap[id].name}
+  renderMap(currentPath);
+}
+function applyMapTransform(){
+  const svg=document.getElementById('map-svg');
+  svg.style.transform=`translate(${mapX}px,${mapY}px) scale(${mapScale})`;
+}
+function mapZoom(factor){
+  mapScale=Math.min(4,Math.max(0.4,mapScale*factor));
+  applyMapTransform();
+}
+function mapReset(){mapScale=1;mapX=0;mapY=0;applyMapTransform()}
+
+// touch pan
+let touchStart=null;
+document.getElementById('map-wrap').addEventListener('touchstart',e=>{
+  if(e.touches.length===1)touchStart={x:e.touches[0].clientX-mapX,y:e.touches[0].clientY-mapY};
+},{passive:true});
+document.getElementById('map-wrap').addEventListener('touchmove',e=>{
+  if(e.touches.length===1&&touchStart){
+    mapX=e.touches[0].clientX-touchStart.x;
+    mapY=e.touches[0].clientY-touchStart.y;
+    applyMapTransform();
+  }
+},{passive:true});
+
+// ─── ABOUT LIST ──────────────────────────────────────────────────
+const named=NODES.filter(n=>n.named);
+document.getElementById('locations-list').innerHTML=named.map((n,i)=>`
+  <div class="info-row" style="${i===named.length-1?'':''}">
+    <span class="info-key">${n.icon} ${n.name}</span>
+    <span class="info-val" style="font-size:11px;color:var(--text3)">${n.type}</span>
+  </div>`).join('');
+
+// ─── INIT ────────────────────────────────────────────────────────
+renderPickerList('');
+renderMap([]);
+</script>
+</body>
+</html>
